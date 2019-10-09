@@ -37,9 +37,12 @@ public:
 	AlmFile & LoadAsync(const std::almstring &filepath);
 	const char *GetContentAsync();
 
+	void Write(const char *data, uint32_t size);
+	void Save();
+	void SaveAsync();
+
 private:
 	char *m_data;
-	uint32_t m_size;
 	std::almstring m_filepath;
 	std::future<void> m_future;
 };

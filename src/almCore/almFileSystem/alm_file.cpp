@@ -2,6 +2,7 @@
 #include <cstdio>
 
 using namespace alme;
+#define SAFE_DELETE_DATA(x) if(x){delete [] x; x = nullptr; }
 
 io::AlmFile::AlmFile()
 {
@@ -9,16 +10,13 @@ io::AlmFile::AlmFile()
 
 io::AlmFile::AlmFile(const std::almstring & filePath)
 	: m_data(nullptr)
-	, m_size(0)
 	, m_filepath(filePath)
 {
 }
 
 io::AlmFile::AlmFile(AlmFile && rhv)
 	: m_data(rhv.m_data)
-	, m_size(rhv.m_size)
 {
-	rhv.m_size = 0;
 	rhv.m_data = nullptr;
 	std::swap(m_filepath, rhv.m_filepath);
 }
@@ -26,7 +24,6 @@ io::AlmFile::AlmFile(AlmFile && rhv)
 io::AlmFile & alme::io::AlmFile::operator=(AlmFile && rhv)
 {
 	m_data = rhv.m_data;
-	std::swap(m_size, rhv.m_size);
 	std::swap(m_filepath, rhv.m_filepath);
 	rhv.m_data = nullptr;
 	return *this;
@@ -34,8 +31,7 @@ io::AlmFile & alme::io::AlmFile::operator=(AlmFile && rhv)
 
 io::AlmFile::~AlmFile()
 {
-	if (m_data) 
-		delete[] m_data;
+	SAFE_DELETE_DATA(m_data);
 }
 
 
@@ -58,10 +54,11 @@ const std::almstring & io::AlmFile::GetPath() const
 bool io::AlmFile::Exist() const
 {
 	bool exist = false;
+	FILE *file = NULL;
 #ifdef ALM_UNICODE
-	auto file = _wfopen(GetFullPath().c_str(), L"rt");
+	_wfopen_s(&file, GetFullPath().c_str(), L"rt");
 #else
-	auto file = fopen(GetFullPath().c_str(), "rt");
+	fopen(&file, GetFullPath().c_str(), "rt");
 #endif // ALM_UNICODE
 	exist = file;
 	if (exist) fclose(file);
@@ -72,27 +69,23 @@ bool io::AlmFile::Exist() const
 
 const char * io::AlmFile::Load()
 {
+	FILE *file = NULL;
 #ifdef ALM_UNICODE
-	auto file = _wfopen(GetFullPath().c_str(), L"rt");
+	_wfopen_s(&file, GetFullPath().c_str(), L"rt");
 #else
-	auto file = fopen(GetFullPath().c_str(), "rt");
+	fopen(&file, GetFullPath().c_str(), "rt");
 #endif // ALM_UNICODE
 	if (!file)
 	{
-		m_size = 0;
-		if (m_data)
-		{
-			delete[] m_data;
-			m_data = nullptr;
-		}
+		SAFE_DELETE_DATA(m_data);
 	}
 	else
 	{
 		fseek(file, 0, SEEK_END);
-		m_size = ftell(file);
-		m_data = new char[m_size + 1];
+		uint32_t size = ftell(file);
+		m_data = new char[size + 1];
 		fseek(file, 0, SEEK_SET);
-		fread(m_data, m_size, 1, file);
+		fread(m_data, size, 1, file);
 		fclose(file);
 	}
 
@@ -108,6 +101,7 @@ const char * io::AlmFile::Load(const std::almstring &filepath)
 
 io::AlmFile & alme::io::AlmFile::LoadAsync()
 {
+	SAFE_DELETE_DATA(m_data);
 	m_future = std::async(std::launch::async, [this]() mutable { Load(); });
 	return *this;
 }
@@ -123,4 +117,21 @@ const char * alme::io::AlmFile::GetContentAsync()
 	if (m_filepath.size() <= 0) return nullptr;
 	if (!m_data) m_future.get();
 	return m_data;
+}
+
+void alme::io::AlmFile::Write(const char * data, uint32_t size)
+{
+	if (!data) return;
+	SAFE_DELETE_DATA(m_data);
+	m_data = new char[size+1];
+	memcpy_s(m_data, size, data, size);
+}
+
+void alme::io::AlmFile::Save()
+{
+}
+
+void alme::io::AlmFile::SaveAsync()
+{
+	std::async(std::launch::async, [this]() { Save(); });
 }

@@ -14,6 +14,8 @@ AlmTransform::AlmTransform(AlmEntity *owner)
 
 AlmTransform::~AlmTransform()
 {
+	if (!m_parent) return;
+	m_parent->RemoveChild(this);
 }
 
 

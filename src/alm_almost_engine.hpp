@@ -1,14 +1,13 @@
 #ifndef _ALM_ALMOST_ENGINE_HPP_
 #define _ALM_ALMOST_ENGINE_HPP_
 
-#include "alm_engine.hpp"
+#include "alm_entry_point.hpp"
 
-extern AlmEngineEntryPoint *CreateEntryPoint();
+extern alme::AlmEngineEntryPoint *CreateEntryPoint();
 int main(int argc, char **argv)
 {
-	AlmEngineEntryPoint *entry_point = CreateEntryPoint();
-	entry_point->InitializeSsettings();
-	entry_point->RegisterGameScenes();
+	alme::AlmEngineEntryPoint *entry_point = CreateEntryPoint();
+	entry_point->Run();
 	delete entry_point;
 
 	return 0;

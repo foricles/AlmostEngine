@@ -1,6 +1,10 @@
 #ifndef _ALM_PLATFORM_HPP_
 #define _ALM_PLATFORM_HPP_
 
+#include <string>
+#include <sstream>
+#include <cassert>
+
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	#define NOMINMAX
 	#include <Windows.h>

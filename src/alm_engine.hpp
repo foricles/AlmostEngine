@@ -1,17 +1,39 @@
 #ifndef _ALM_ENGINE_HPP_
 #define _ALM_ENGINE_HPP_
 
-class AlmEngineEntryPoint
+#include <functional>
+
+namespace alme
 {
+class AlmSceneManager;
+class IAlmEntityManager;
+
+class AlmostEngine
+{
+	friend class AlmEngineEntryPoint;
 public:
-	AlmEngineEntryPoint();
-	virtual ~AlmEngineEntryPoint();
+	AlmostEngine();
+	virtual ~AlmostEngine();
 
-	virtual void InitializeSsettings() = 0;
-	virtual void RegisterGameScenes() = 0;
+private:
+	AlmSceneManager *m_sceneManager;
+	IAlmEntityManager *m_entityManager;
 
-protected:
+private:
+	std::function<AlmSceneManager*()> m_sceneManagerInitializer;
+	std::function<IAlmEntityManager*()> m_entityManagerInitializer;
+
+public:
+	template<class T> inline void SetSceneManager()
+	{
+		m_sceneManagerInitializer = []() -> AlmSceneManager* { return new T(); };
+	}
+	template<class T> inline void SetEntityManager()
+	{
+		m_entityManagerInitializer = []() -> IAlmEntityManager* { return new T(); };
+	}
 
 };
+}
 
 #endif // !_ALM_ENGINE_HPP_

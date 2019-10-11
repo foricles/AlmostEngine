@@ -2,20 +2,22 @@
 #define _ALM_ENTITY_HPP_
 
 #include "alm_transform.hpp"
+#include "alm_ientity.hpp"
 
 namespace alme
 {
 
-class AlmEntity
+class AlmEntity : public IAlmEntity
 {
+	friend class AlmEntityManager;
 public:
 	AlmEntity();
 	AlmEntity(const AlmEntity &rhv) = delete;
 	AlmEntity & operator=(const AlmEntity &rhv) = delete;
-	virtual ~AlmEntity();
+	~AlmEntity();
 
-	const uint32_t			GetId() const;
-	const std::string &		GetName() const;
+	const uint32_t			GetId() const override;
+	const std::string &		GetName() const override;
 	AlmTransform &			GetTransform();
 	const AlmTransform &	GetTransform()const;
 

@@ -1,37 +1,22 @@
 #include <alm_almost_engine.hpp>
-#include <almCore/almFileSystem/alm_file.hpp>
-#include <almCore/almEntitySystem/almEntity/alm_entity.hpp>
-#include <iostream>
+#include <almCore/almSceneSystem/alm_scenemanager.hpp>
+#include "simple_scene.hpp"
 
-class SanboxApplication : public AlmEngineEntryPoint
+class SanboxApplication : public alme::AlmEngineEntryPoint
 {
 public:
 	void InitializeSsettings() override
 	{
-		std::cout << sizeof(alme::io::AlmFile) << std::endl;
-		std::wcout << alme::io::AlmFileSystem::getRootPath() << std::endl;
-		alme::io::AlmFile sss(L"Sandbox.pdb");
-		//std::wcout << sss.GetFullPath()  << std::endl << (sss.Exist() ? sss.Load() : "hui") << std::endl;
-		std::cout << "start load" << std::endl;
-		sss.LoadAsync();
-		std::wcout << sss.GetContentAsync() << std::endl;
-		system("pause");
+
 	}
 
-	void RegisterGameScenes() override
+	void RegisterGameScenes(alme::AlmSceneManager *namager) override
 	{
-		alme::AlmEntity a1;
-		alme::AlmEntity a2;
-		alme::AlmEntity a3;
-		a2.GetTransform().AddChild(&a1.GetTransform());
-		a1.GetTransform().AddChild(&a3.GetTransform());
-		a3.GetTransform().AddChild(&a1.GetTransform());
-		int a = 6;
-		system("pause");
+		namager->AddScene<SimpleScene>("simple_scene");
 	}
 };
 
-AlmEngineEntryPoint *CreateEntryPoint()
+alme::AlmEngineEntryPoint *CreateEntryPoint()
 {
 	return new SanboxApplication();
 }

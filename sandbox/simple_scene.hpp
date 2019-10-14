@@ -26,7 +26,22 @@ public:
 		mgr.CreateEntity("Suka");
 		mgr.CreateEntity("Zhopa");
 
-		alme::AlmEntity *entity = static_cast<alme::AlmEntity*>(mgr.FindByName("Zhopa"));
+		alme::AlmEntity *entity1 = static_cast<alme::AlmEntity*>(mgr.FindByName("Zhopa"));
+		alme::AlmEntity *entity2 = static_cast<alme::AlmEntity*>(mgr.FindByName("Pidor"));
+
+		entity1->GetTransform().SetParent(entity2->GetTransform());
+		entity1->GetTransform().SetPosition(5, 6, 7);
+
+		entity2->GetTransform().SetPosition(10, 20, 30);
+		entity2->GetTransform().SetScale(10, -3, 0);
+		entity2->GetTransform().UpdateModelMatrix();
+
+		std::cout << entity1->GetTransform().GetPosition().toString() << std::endl;
+
+		std::cout << entity1->GetTransform().GetModelMatrix().toString() << std::endl;
+
+		auto sz = sizeof(alme::AlmEntity);
+
 		system("pause");
 	}
 };

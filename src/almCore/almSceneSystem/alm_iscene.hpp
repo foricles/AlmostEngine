@@ -12,10 +12,12 @@ public:
 	virtual ~IAlmScene() {}
 
 	virtual void OnStart() {};
+	virtual void OnUpdate() {};
 	virtual void OnDelete() {};
 
 private:
 	std::string m_name;
+
 };
 
 }

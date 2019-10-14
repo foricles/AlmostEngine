@@ -22,23 +22,23 @@ namespace kmu
 		vec2(const vec2 &another);
 		~vec2();
 
-		inline float magnitude() const;
-		inline float sqrMagnitude() const;
-		inline float angle() const;
-		inline float dot(const vec2 &vec) const;
-		inline float cross(const vec2 &vec) const;
-		inline vec2 &normalize();
-		inline vec2 normalized()const;
-		inline std::string toString()const;
+		 float magnitude() const;
+		 float sqrMagnitude() const;
+		 float angle() const;
+		 float dot(const vec2 &vec) const;
+		 float cross(const vec2 &vec) const;
+		 vec2 &normalize();
+		 vec2 normalized()const;
+		 std::string toString()const;
 
-		inline void set(float X, float Y);
+		 void set(float X, float Y);
 
-		inline float &operator[](size_t id);
-		inline const vec2 &operator=(const vec2 &vec);
-		inline vec2 &operator+=(const vec2 &vec);
-		inline vec2 &operator-=(const vec2 &vec);
-		inline vec2 &operator*=(float n);
-		inline vec2 &operator/=(float n);
+		 float &operator[](size_t id);
+		 const vec2 &operator=(const vec2 &vec);
+		 vec2 &operator+=(const vec2 &vec);
+		 vec2 &operator-=(const vec2 &vec);
+		 vec2 &operator*=(float n);
+		 vec2 &operator/=(float n);
 
 		extern friend vec2 operator+(const vec2 &v, const vec2 &vec);
 		extern friend vec2 operator-(const vec2 &v, const vec2 &vec);

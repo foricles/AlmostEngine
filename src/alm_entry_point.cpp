@@ -21,11 +21,11 @@ void AlmEngineEntryPoint::InitializeEngineComponents()
 void alme::AlmEngineEntryPoint::Run()
 {
 	InitializeEngineComponents();
+	InitializeSsettings();
+
 	m_engine.m_sceneManager = m_engine.m_sceneManagerInitializer();
 
-	InitializeSsettings();
 	RegisterGameScenes(m_engine.m_sceneManager);
-
 
 	m_engine.m_sceneManager->RunScene(0);
 }

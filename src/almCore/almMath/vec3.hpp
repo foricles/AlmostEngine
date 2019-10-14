@@ -22,22 +22,22 @@ namespace kmu
 		vec3(const vec3 &vec);
 		~vec3();
 
-		inline float magnitude()const;
-		inline float sqrMagnitude()const;
-		inline float dot(const vec3 &vec)const;
-		inline vec3 cross(const vec3 &vec)const;
-		inline vec3 &normalize();
-		inline vec3 normalized()const;
-		inline std::string toString()const;
+		 float magnitude()const;
+		 float sqrMagnitude()const;
+		 float dot(const vec3 &vec)const;
+		 vec3 cross(const vec3 &vec)const;
+		 vec3 &normalize();
+		 vec3 normalized()const;
+		 std::string toString()const;
 
-		inline void set(float X, float Y, float Z);
+		 void set(float X, float Y, float Z);
 
-		inline float &operator[](size_t id);
-		inline const vec3 &operator=(const vec3 &vec);
-		inline vec3 &operator+=(const vec3 &vec);
-		inline vec3 &operator-=(const vec3 &vec);
-		inline vec3 &operator*=(float n);
-		inline vec3 &operator/=(float n);
+		 float &operator[](size_t id);
+		 const vec3 &operator=(const vec3 &vec);
+		 vec3 &operator+=(const vec3 &vec);
+		 vec3 &operator-=(const vec3 &vec);
+		 vec3 &operator*=(float n);
+		 vec3 &operator/=(float n);
 
 		extern friend vec3 operator+(const vec3 &v, const vec3 &vec);
 		extern friend vec3 operator-(const vec3 &v, const vec3 &vec);

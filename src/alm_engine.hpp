@@ -3,6 +3,7 @@
 
 #include <functional>
 
+
 namespace alme
 {
 class AlmSceneManager;

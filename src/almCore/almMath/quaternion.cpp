@@ -18,24 +18,24 @@ kmu::quaternion::~quaternion()
 {
 }
 
-inline void kmu::quaternion::conjugate()
+ void kmu::quaternion::conjugate()
 {
 	x = -x;
 	y = -y;
 	z = -z;
 }
 
-inline kmu::quaternion kmu::quaternion::conjugated() const
+ kmu::quaternion kmu::quaternion::conjugated() const
 {
 	return kmu::quaternion(-x, -y, -z, w);
 }
 
-inline const kmu::quaternion & kmu::quaternion::operator=(const quaternion & qut)
+ const kmu::quaternion & kmu::quaternion::operator=(const quaternion & qut)
 {
 	return *this;
 }
 
-inline kmu::vec3 kmu::quaternion::rotate(const kmu::vec3 & vect) const
+ kmu::vec3 kmu::quaternion::rotate(const kmu::vec3 & vect) const
 {
 	//TODO:
 	auto temp = ((*this) * vect) * this->conjugated();
@@ -56,7 +56,7 @@ kmu::quaternion kmu::quaternion::euler(float angle, const vec3 & axes)
 	return quaternion(X, Y, Z, hc);
 }
 
-inline kmu::quaternion kmu::operator*(const quaternion &q1, const quaternion &q2)
+ kmu::quaternion kmu::operator*(const quaternion &q1, const quaternion &q2)
 {
 	float x1 = q1.x;
 	float x2 = q2.x;
@@ -76,7 +76,7 @@ inline kmu::quaternion kmu::operator*(const quaternion &q1, const quaternion &q2
 	float W = w1*w2 - x1*x2 - y1*y2 - z1*z2;
 	return quaternion(X, Y, Z, W);
 }
-inline kmu::quaternion kmu::operator*(const quaternion &q1, const vec3 & vec)
+ kmu::quaternion kmu::operator*(const quaternion &q1, const vec3 & vec)
 {
 	float W = -q1.x*vec.x - q1.y*vec.y - q1.z*vec.z;
 	float X = q1.w*vec.x + q1.y*vec.z - q1.z*vec.y;

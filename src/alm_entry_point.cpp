@@ -22,10 +22,7 @@ void alme::AlmEngineEntryPoint::Run()
 {
 	InitializeEngineComponents();
 	InitializeSsettings();
-
-	m_engine.m_sceneManager = m_engine.m_sceneManagerInitializer();
-
+	m_engine.InititalizeSubsystems();
 	RegisterGameScenes(m_engine.m_sceneManager);
-
-	m_engine.m_sceneManager->RunScene(0);
+	m_engine.RunLoop();
 }

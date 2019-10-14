@@ -3,6 +3,8 @@
 #include "almCore/almEntitySystem/alm_imgr.hpp"
 #include "almCore/almSceneSystem/alm_scenemanager.hpp"
 
+#include <thread>
+
 using namespace alme;
 
 AlmostEngine::AlmostEngine()
@@ -15,4 +17,19 @@ AlmostEngine::~AlmostEngine()
 {
 	if (m_sceneManager) delete m_sceneManager;
 	if (m_entityManager) delete m_entityManager;
+}
+
+void alme::AlmostEngine::InititalizeSubsystems()
+{
+	m_entityManager = m_entityManagerInitializer();
+	m_sceneManager = m_sceneManagerInitializer();
+}
+
+void alme::AlmostEngine::RunLoop()
+{
+	m_sceneManager->RunScene(0);
+	while (true)
+	{
+		std::this_thread::sleep_for(std::chrono::milliseconds(16));
+	}
 }

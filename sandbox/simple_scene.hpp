@@ -38,10 +38,9 @@ public:
 
 		std::cout << entity1->GetTransform().GetPosition().toString() << std::endl;
 
+		std::cout << entity2->GetTransform().GetModelMatrix().toString() << std::endl;
 		std::cout << entity1->GetTransform().GetModelMatrix().toString() << std::endl;
 
 		auto sz = sizeof(alme::AlmEntity);
-
-		system("pause");
 	}
 };

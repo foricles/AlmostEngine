@@ -17,6 +17,10 @@ public:
 	virtual ~AlmostEngine();
 
 private:
+	void InititalizeSubsystems();
+	void RunLoop();
+
+private:
 	AlmSceneManager *m_sceneManager;
 	IAlmEntityManager *m_entityManager;
 

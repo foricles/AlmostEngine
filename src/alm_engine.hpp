@@ -7,6 +7,7 @@
 namespace alme
 {
 class AlmSceneManager;
+class IAlmRenderSystem;
 class IAlmEntityManager;
 
 class AlmostEngine
@@ -22,20 +23,26 @@ private:
 
 private:
 	AlmSceneManager *m_sceneManager;
+	IAlmRenderSystem *m_renderSystem;
 	IAlmEntityManager *m_entityManager;
 
 private:
 	std::function<AlmSceneManager*()> m_sceneManagerInitializer;
+	std::function<IAlmRenderSystem*()> m_renderSystemInitializer;
 	std::function<IAlmEntityManager*()> m_entityManagerInitializer;
 
 public:
 	template<class T> inline void SetSceneManager()
 	{
-		m_sceneManagerInitializer = []() -> AlmSceneManager* { return new T(); };
+		m_sceneManagerInitializer = [this]() -> AlmSceneManager* { return new T(); };
 	}
 	template<class T> inline void SetEntityManager()
 	{
-		m_entityManagerInitializer = []() -> IAlmEntityManager* { return new T(); };
+		m_entityManagerInitializer = [this]() -> IAlmEntityManager* { return new T(); };
+	}
+	template<class T> inline void SetRenderSystem()
+	{
+		m_renderSystemInitializer = [this]() -> IAlmRenderSystem* { return new T(); };
 	}
 
 };

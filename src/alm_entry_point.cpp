@@ -1,6 +1,7 @@
 #include "alm_entry_point.hpp"
 #include "almCore/almSceneSystem/alm_scenemanager.hpp"
 #include "almCore/almEntitySystem/alm_entitymgr.hpp"
+#include "almCore/almRender/alm_vulkanrender.hpp"
 
 using namespace alme;
 
@@ -16,6 +17,7 @@ void AlmEngineEntryPoint::InitializeEngineComponents()
 {
 	m_engine.SetSceneManager<AlmSceneManager>();
 	m_engine.SetEntityManager<AlmEntityManager>();
+	m_engine.SetRenderSystem<AlmVulkanRender>();
 }
 
 void alme::AlmEngineEntryPoint::Run()

@@ -1,7 +1,7 @@
 #ifndef _ALM_FILE_SYSTEM_HPP_
 #define _ALM_FILE_SYSTEM_HPP_
 
-#include "../src/almCore/alm_platform.hpp"
+#include "../alm_platform.hpp"
 
 namespace alme
 {

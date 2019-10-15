@@ -2,7 +2,7 @@
 #define _ALM_TRANSFORM_HPP_
 
 #include <vector>
-#include "../src/almCore/almMath/matrices.hpp"
+#include "../../almMath/matrices.hpp"
 
 namespace alme
 {

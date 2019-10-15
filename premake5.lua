@@ -31,9 +31,20 @@ filter "configurations:Release"
 			"src/**.hpp",
 		}
 		
+		links
+		{
+			"vulkan-1"
+		}
+		
 		includedirs --directories
 		{
-			"thirdparty/"
+			"scr/",
+			"thirdparty/include/",
+		}
+		
+		libdirs 
+		{ 
+			"thirdparty/lib/",
 		}
 		
 		filter "system:windows"
@@ -44,6 +55,7 @@ filter "configurations:Release"
 			defines
 			{
 				"GLEW_STATIC",
+				"VK_USE_PLATFORM_WIN32_KHR",
 			}
 			
 		postbuildcommands
@@ -69,7 +81,7 @@ filter "configurations:Release"
 		
 		includedirs --directories
 		{
-			"thirdparty/",
+			"thirdparty/include/",
 			"src/",
 		}
 		

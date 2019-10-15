@@ -2,6 +2,7 @@
 #include "almCore/alm_platform.hpp"
 #include "almCore/almEntitySystem/alm_imgr.hpp"
 #include "almCore/almSceneSystem/alm_scenemanager.hpp"
+#include "almCore/almRender/interface/alm_irendersys.hpp"
 
 #include <thread>
 
@@ -9,6 +10,7 @@ using namespace alme;
 
 AlmostEngine::AlmostEngine()
 	: m_entityManager(nullptr)
+	, m_renderSystem(nullptr)
 	, m_sceneManager(nullptr)
 {
 }
@@ -17,12 +19,17 @@ AlmostEngine::~AlmostEngine()
 {
 	if (m_sceneManager) delete m_sceneManager;
 	if (m_entityManager) delete m_entityManager;
+	if (m_renderSystem) delete m_renderSystem;
 }
 
 void alme::AlmostEngine::InititalizeSubsystems()
 {
 	m_entityManager = m_entityManagerInitializer();
 	m_sceneManager = m_sceneManagerInitializer();
+	m_renderSystem = m_renderSystemInitializer();
+
+
+	m_renderSystem->InitRenderAPIInstance();
 }
 
 void alme::AlmostEngine::RunLoop()

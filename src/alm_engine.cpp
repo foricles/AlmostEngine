@@ -22,7 +22,7 @@ AlmostEngine::~AlmostEngine()
 	if (m_renderSystem) delete m_renderSystem;
 }
 
-void alme::AlmostEngine::InititalizeSubsystems()
+void AlmostEngine::InititalizeSubsystems()
 {
 	m_entityManager = m_entityManagerInitializer();
 	m_sceneManager = m_sceneManagerInitializer();
@@ -32,7 +32,7 @@ void alme::AlmostEngine::InititalizeSubsystems()
 	m_renderSystem->InitRenderAPIInstance();
 }
 
-void alme::AlmostEngine::RunLoop()
+void AlmostEngine::RunLoop()
 {
 	m_sceneManager->RunScene(0);
 	while (true)

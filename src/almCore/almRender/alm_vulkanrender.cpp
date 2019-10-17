@@ -70,7 +70,14 @@ void AlmVulkanRender::InitRenderAPIInstance()
 	InitDevicePhys();
 	InitDeviceLogic();
 	InitCommandPool();
-	InitSwapchain();
+}
+
+void AlmVulkanRender::OnWindowResize(unsigned int width, unsigned int height)
+{
+	globVKDevice.waitIdle();
+	DestroyCommands();
+	CreateCommands();
+	SetupCommands();
 }
 
 void AlmVulkanRender::InitInstance()
@@ -213,7 +220,28 @@ void alme::AlmVulkanRender::InitSurface()
 #endif // ALM_OS_WINDOWS
 }
 
-void AlmVulkanRender::InitSwapchain()
+void AlmVulkanRender::InitSwapchain(unsigned int width, unsigned int height)
 {
 
+}
+
+
+
+
+void alme::AlmVulkanRender::DestroyCommands()
+{
+}
+
+void alme::AlmVulkanRender::CreateCommands()
+{
+	//vk::CommandBufferAllocateInfo info(
+	//	globVKCommandPool,
+	//	vk::CommandBufferLevel::ePrimary,
+	//	static_cast<uint32_t>(globVKSwapchainBuffers.size())
+	//);
+	//globVKCommandBuffers = mDevice.allocateCommandBuffers(info);
+}
+
+void alme::AlmVulkanRender::SetupCommands()
+{
 }

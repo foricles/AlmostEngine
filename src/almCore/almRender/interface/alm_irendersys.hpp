@@ -10,6 +10,7 @@ public:
 	virtual ~IAlmRenderSystem() {};
 
 	virtual void InitRenderAPIInstance() = 0;
+	virtual void OnWindowResize(unsigned int width, unsigned int height) = 0;
 };
 
 }

@@ -1,7 +1,7 @@
 #ifndef _ALM_ENGINE_HPP_
 #define _ALM_ENGINE_HPP_
 
-#include <functional>
+#include "almCore/almEvents/alm_delegat.hpp"
 
 
 namespace alme
@@ -10,12 +10,12 @@ class AlmSceneManager;
 class IAlmRenderSystem;
 class IAlmEntityManager;
 
-class AlmostEngine
+class AlmostEngine : public AlmEventHandler
 {
 	friend class AlmEngineEntryPoint;
 public:
 	AlmostEngine();
-	virtual ~AlmostEngine();
+	~AlmostEngine();
 
 private:
 	void InititalizeSubsystems();

@@ -13,6 +13,8 @@ public:
 	~AlmVulkanRender();
 
 	void InitRenderAPIInstance() override;
+	void OnWindowResize(unsigned int width, unsigned int height) override;
+
 
 private:
 	void InitInstance();
@@ -20,8 +22,11 @@ private:
 	void InitDeviceLogic();
 	void InitCommandPool();
 	void InitSurface();
-	void InitSwapchain();
+	void InitSwapchain(unsigned int width, unsigned int height);
 
+	void DestroyCommands();
+	void CreateCommands();
+	void SetupCommands();
 };
 
 }

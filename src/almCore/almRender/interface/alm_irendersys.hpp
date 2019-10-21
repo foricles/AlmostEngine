@@ -1,10 +1,12 @@
 #ifndef _ALM_RENDER_SYSTEM_INTERFACE_HPP_
 #define _ALM_RENDER_SYSTEM_INTERFACE_HPP_
 
+#include "../src/almCore/almEvents/alm_eventhandler.hpp"
+
 namespace alme
 {
 
-class IAlmRenderSystem
+class IAlmRenderSystem : public AlmEventHandler
 {
 public:
 	virtual ~IAlmRenderSystem() {};

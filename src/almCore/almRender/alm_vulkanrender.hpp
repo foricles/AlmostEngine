@@ -22,11 +22,12 @@ private:
 	void InitDeviceLogic();
 	void InitCommandPool();
 	void InitSurface();
-	void InitSwapchain(unsigned int width, unsigned int height);
+	void InitSynch();
 
 	void DestroyCommands();
 	void CreateCommands();
 	void SetupCommands();
+	void SetupSwapchain(unsigned int width, unsigned int height);
 };
 
 }

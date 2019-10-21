@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <array>
 #include <vulkan/vulkan.hpp>
 
 using namespace alme;
@@ -18,12 +19,32 @@ static vk::Queue globVKQueue;
 static float globVKQueuePriority;
 static uint32_t globVKQueueFamilyIndex;
 
+static uint32_t globVKCurrentBuffer;
 static vk::CommandPool globVKCommandPool;
+static std::vector<vk::CommandBuffer> globVKCommandBuffers;
+
+static vk::Rect2D globVKRenderArea;
+static vk::Viewport globVKViewport;
+static vk::Extent2D globVKSurfaceSize;
 
 static vk::Format globVKSurfaceColorFormat;
 static vk::Format globVKSurfaceDepthFormat;
 static vk::ColorSpaceKHR globVKSurfaceColorSpace;
 
+// Swpachain
+struct SwapChainBuffer 
+{
+	vk::Image image;
+	std::array<vk::ImageView, 2> views;
+	vk::Framebuffer frameBuffer;
+};
+
+static std::vector<SwapChainBuffer> globVKSwapchainBuffers;
+
+// Sync
+static std::vector<vk::Fence> globVKWaitFences;
+static vk::Semaphore globVKRenderCompleteSemaphore;
+static vk::Semaphore globVKPresentCompleteSemaphore;
 
 static void findBestExtensions(const std::vector<vk::ExtensionProperties>& installed, const std::vector<const char*>& wanted, std::vector<const char*>& out)
 {
@@ -69,7 +90,9 @@ void AlmVulkanRender::InitRenderAPIInstance()
 	InitSurface();
 	InitDevicePhys();
 	InitDeviceLogic();
+	SetupSwapchain(640, 480);
 	InitCommandPool();
+	InitSynch();
 }
 
 void AlmVulkanRender::OnWindowResize(unsigned int width, unsigned int height)
@@ -78,6 +101,7 @@ void AlmVulkanRender::OnWindowResize(unsigned int width, unsigned int height)
 	DestroyCommands();
 	CreateCommands();
 	SetupCommands();
+	SetupSwapchain(width, height);
 }
 
 void AlmVulkanRender::InitInstance()
@@ -212,7 +236,8 @@ void alme::AlmVulkanRender::InitSurface()
 {
 #ifdef ALM_OS_WINDOWS
 
-	vk::Win32SurfaceCreateInfoKHR info(vk::Win32SurfaceCreateFlagsKHR(), GetModuleHandle(nullptr), /*HWND*/ NULL);
+	HWND hwnd = GetActiveWindow();
+	vk::Win32SurfaceCreateInfoKHR info(vk::Win32SurfaceCreateFlagsKHR(), GetModuleHandle(nullptr), hwnd);
 	globVKSurface = globVKInstance.createWin32SurfaceKHR(info);
 
 #else
@@ -220,9 +245,21 @@ void alme::AlmVulkanRender::InitSurface()
 #endif // ALM_OS_WINDOWS
 }
 
-void AlmVulkanRender::InitSwapchain(unsigned int width, unsigned int height)
+void AlmVulkanRender::InitSynch()
 {
+	// Semaphore used to ensures that image presentation is complete before starting to submit again
+	globVKPresentCompleteSemaphore = globVKDevice.createSemaphore(vk::SemaphoreCreateInfo());
 
+	// Semaphore used to ensures that all commands submitted have been finished before submitting the image to the queue
+	globVKRenderCompleteSemaphore = globVKDevice.createSemaphore(vk::SemaphoreCreateInfo());
+
+	// Fence for command buffer completion
+	globVKWaitFences.resize(globVKSwapchainBuffers.size());
+
+	for (size_t i = 0; i < globVKWaitFences.size(); i++)
+	{
+		globVKWaitFences[i] = globVKDevice.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+	}
 }
 
 
@@ -234,14 +271,84 @@ void alme::AlmVulkanRender::DestroyCommands()
 
 void alme::AlmVulkanRender::CreateCommands()
 {
-	//vk::CommandBufferAllocateInfo info(
-	//	globVKCommandPool,
-	//	vk::CommandBufferLevel::ePrimary,
-	//	static_cast<uint32_t>(globVKSwapchainBuffers.size())
-	//);
-	//globVKCommandBuffers = mDevice.allocateCommandBuffers(info);
+	vk::CommandBufferAllocateInfo info(
+		globVKCommandPool,
+		vk::CommandBufferLevel::ePrimary,
+		static_cast<uint32_t>(globVKSwapchainBuffers.size())
+	);
+	globVKCommandBuffers = globVKDevice.allocateCommandBuffers(info);
 }
 
 void alme::AlmVulkanRender::SetupCommands()
 {
+}
+
+void AlmVulkanRender::SetupSwapchain(unsigned int width, unsigned int height)
+{
+	// Setup viewports, Vsync
+	vk::Extent2D swapchainSize = vk::Extent2D(width, height);
+
+	// All framebuffers / attachments will be the same size as the surface
+	vk::SurfaceCapabilitiesKHR surfaceCapabilities = globVKPhysicalDevice.getSurfaceCapabilitiesKHR(globVKSurface);
+	if (!(surfaceCapabilities.currentExtent.width == -1 || surfaceCapabilities.currentExtent.height == -1)) {
+		swapchainSize = surfaceCapabilities.currentExtent;
+		globVKRenderArea = vk::Rect2D(vk::Offset2D(), swapchainSize);
+		globVKViewport = vk::Viewport(0.0f, 0.0f, static_cast<float>(swapchainSize.width), static_cast<float>(swapchainSize.height), 0, 1.0f);
+	}
+
+	// VSync
+	std::vector<vk::PresentModeKHR> surfacePresentModes = globVKPhysicalDevice.getSurfacePresentModesKHR(globVKSurface);
+	vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate;
+
+	for (vk::PresentModeKHR& pm : surfacePresentModes) {
+		if (pm == vk::PresentModeKHR::eMailbox) {
+			presentMode = vk::PresentModeKHR::eMailbox;
+			break;
+		}
+	}
+
+	// Create Swapchain, Images, Frame Buffers
+
+	globVKDevice.waitIdle();
+	vk::SwapchainKHR oldSwapchain = globVKSwapchain;
+
+	// Some devices can support more than 2 buffers, but during my tests they would crash on fullscreen ~ ag
+	// Tested on an NVIDIA 1080 and 165 Hz 2K display
+	auto clamp = [](uint32_t a, uint32_t mi, uint32_t mx) -> uint32_t { return a < mi ? mi : (a > mx ? mx : a); };
+	uint32_t backbufferCount = clamp(surfaceCapabilities.maxImageCount, 1U, 2U);
+
+	globVKSwapchain = globVKDevice.createSwapchainKHR(
+		vk::SwapchainCreateInfoKHR(
+			vk::SwapchainCreateFlagsKHR(),
+			globVKSurface,
+			backbufferCount,
+			globVKSurfaceColorFormat,
+			globVKSurfaceColorSpace,
+			swapchainSize,
+			1,
+			vk::ImageUsageFlagBits::eColorAttachment,
+			vk::SharingMode::eExclusive,
+			1,
+			&globVKQueueFamilyIndex,
+			vk::SurfaceTransformFlagBitsKHR::eIdentity,
+			vk::CompositeAlphaFlagBitsKHR::eOpaque,
+			presentMode,
+			VK_TRUE,
+			oldSwapchain
+		)
+	);
+
+	globVKSurfaceSize = vk::Extent2D(clamp(swapchainSize.width, 1U, 8192U), clamp(swapchainSize.height, 1U, 8192U));
+	globVKRenderArea = vk::Rect2D(vk::Offset2D(), globVKSurfaceSize);
+	globVKViewport = vk::Viewport(0.0f, 0.0f, static_cast<float>(globVKSurfaceSize.width), static_cast<float>(globVKSurfaceSize.height), 0, 1.0f);
+
+
+	// Destroy previous swapchain
+	if (oldSwapchain != vk::SwapchainKHR(nullptr))
+	{
+		globVKDevice.destroySwapchainKHR(oldSwapchain);
+	}
+
+	// Resize swapchain buffers for use later
+	globVKSwapchainBuffers.resize(backbufferCount);
 }

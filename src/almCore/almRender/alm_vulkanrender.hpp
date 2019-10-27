@@ -15,13 +15,15 @@ public:
 	void InitRenderAPIInstance() override;
 	void OnWindowResize(unsigned int width, unsigned int height) override;
 
+	void BeginRender() override {}
+	void FinishRender() override {}
 
 private:
 	void InitInstance();
 	void InitDevicePhys();
 	void InitDeviceLogic();
-	void InitCommandPool();
 	void InitSurface();
+	void InitCommandPool();
 	void InitSynch();
 
 	void DestroyCommands();

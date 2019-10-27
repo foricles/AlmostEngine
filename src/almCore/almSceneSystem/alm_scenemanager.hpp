@@ -19,6 +19,8 @@ public:
 
 	virtual void RunScene(const std::string &name);
 	virtual void RunScene(uint32_t id);
+	virtual void OnUpdate();
+	virtual void PostUpdate();
 
 private:
 	IAlmScene *m_activeScene;

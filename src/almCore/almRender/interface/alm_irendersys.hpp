@@ -13,6 +13,9 @@ public:
 
 	virtual void InitRenderAPIInstance() = 0;
 	virtual void OnWindowResize(unsigned int width, unsigned int height) = 0;
+
+	virtual void BeginRender() = 0;
+	virtual void FinishRender() = 0;
 };
 
 }

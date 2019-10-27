@@ -45,3 +45,15 @@ void alme::AlmSceneManager::RunScene(uint32_t id)
 	m_activeScene = m_scenes[id].second();
 	m_activeScene->OnStart();
 }
+
+void alme::AlmSceneManager::OnUpdate()
+{
+	if (m_activeScene)
+		m_activeScene->OnUpdate();
+}
+
+void alme::AlmSceneManager::PostUpdate()
+{
+	if (m_activeScene)
+		m_activeScene->PostUpdate();
+}

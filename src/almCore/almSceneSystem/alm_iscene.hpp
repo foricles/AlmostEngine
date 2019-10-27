@@ -13,6 +13,7 @@ public:
 
 	virtual void OnStart() {};
 	virtual void OnUpdate() {};
+	virtual void PostUpdate() {};
 	virtual void OnDelete() {};
 
 private:

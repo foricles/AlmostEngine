@@ -27,10 +27,6 @@ static vk::Rect2D globVKRenderArea;
 static vk::Viewport globVKViewport;
 static vk::Extent2D globVKSurfaceSize;
 
-static vk::Format globVKSurfaceColorFormat;
-static vk::Format globVKSurfaceDepthFormat;
-static vk::ColorSpaceKHR globVKSurfaceColorSpace;
-
 // Swpachain
 struct SwapChainBuffer 
 {
@@ -87,9 +83,9 @@ AlmVulkanRender::~AlmVulkanRender()
 void AlmVulkanRender::InitRenderAPIInstance()
 {
 	InitInstance();
-	InitSurface();
 	InitDevicePhys();
 	InitDeviceLogic();
+	InitSurface();
 	SetupSwapchain(640, 480);
 	InitCommandPool();
 	InitSynch();
@@ -172,32 +168,6 @@ void AlmVulkanRender::InitDevicePhys()
 	}
 
 	ALM_LOG_ASSERT(bassert, "Failed to find physical device!");
-
-	std::vector<vk::SurfaceFormatKHR> surfaceFormats = globVKPhysicalDevice.getSurfaceFormatsKHR(globVKSurface);
-	if (surfaceFormats.size() == 1 && surfaceFormats[0].format == vk::Format::eUndefined)
-		globVKSurfaceColorFormat = vk::Format::eB8G8R8A8Unorm;
-	else
-		globVKSurfaceColorFormat = surfaceFormats[0].format;
-	globVKSurfaceColorSpace = surfaceFormats[0].colorSpace;
-
-
-	std::vector<vk::Format> depthFormats = {
-		vk::Format::eD32SfloatS8Uint,
-		vk::Format::eD32Sfloat,
-		vk::Format::eD24UnormS8Uint,
-		vk::Format::eD16UnormS8Uint,
-		vk::Format::eD16Unorm
-	};
-
-	for (vk::Format& format : depthFormats)
-	{
-		vk::FormatProperties depthFormatProperties = globVKPhysicalDevice.getFormatProperties(format);
-		if (depthFormatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment)
-		{
-			globVKSurfaceDepthFormat = format;
-			break;
-		}
-	}
 }
 
 void AlmVulkanRender::InitDeviceLogic()
@@ -223,15 +193,6 @@ void AlmVulkanRender::InitDeviceLogic()
 	globVKQueue = globVKDevice.getQueue(globVKQueueFamilyIndex, 0);
 }
 
-void AlmVulkanRender::InitCommandPool()
-{
-	vk::CommandPoolCreateInfo info(
-		vk::CommandPoolCreateFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer),
-		globVKQueueFamilyIndex
-	);
-	globVKCommandPool = globVKDevice.createCommandPool(info);
-}
-
 void alme::AlmVulkanRender::InitSurface()
 {
 #ifdef ALM_OS_WINDOWS
@@ -240,9 +201,19 @@ void alme::AlmVulkanRender::InitSurface()
 	vk::Win32SurfaceCreateInfoKHR info(vk::Win32SurfaceCreateFlagsKHR(), GetModuleHandle(nullptr), hwnd);
 	globVKSurface = globVKInstance.createWin32SurfaceKHR(info);
 
+	VkBool32 isSupported = globVKPhysicalDevice.getSurfaceSupportKHR(globVKQueueFamilyIndex, globVKSurface);
 #else
 	ALM_LOG_ASSERT(false, "Not implemented render surface!");
 #endif // ALM_OS_WINDOWS
+}
+
+void AlmVulkanRender::InitCommandPool()
+{
+	vk::CommandPoolCreateInfo info(
+		vk::CommandPoolCreateFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer),
+		globVKQueueFamilyIndex
+	);
+	globVKCommandPool = globVKDevice.createCommandPool(info);
 }
 
 void AlmVulkanRender::InitSynch()
@@ -285,6 +256,36 @@ void alme::AlmVulkanRender::SetupCommands()
 
 void AlmVulkanRender::SetupSwapchain(unsigned int width, unsigned int height)
 {
+	vk::Format globVKSurfaceColorFormat;
+	vk::Format globVKSurfaceDepthFormat;
+	vk::ColorSpaceKHR globVKSurfaceColorSpace;
+
+	std::vector<vk::SurfaceFormatKHR> surfaceFormats = globVKPhysicalDevice.getSurfaceFormatsKHR(globVKSurface);
+	if (surfaceFormats.size() == 1 && surfaceFormats[0].format == vk::Format::eUndefined)
+		globVKSurfaceColorFormat = vk::Format::eB8G8R8A8Unorm;
+	else
+		globVKSurfaceColorFormat = surfaceFormats[0].format;
+	globVKSurfaceColorSpace = surfaceFormats[0].colorSpace;
+
+
+	std::vector<vk::Format> depthFormats = {
+		vk::Format::eD32SfloatS8Uint,
+		vk::Format::eD32Sfloat,
+		vk::Format::eD24UnormS8Uint,
+		vk::Format::eD16UnormS8Uint,
+		vk::Format::eD16Unorm
+	};
+
+	for (vk::Format& format : depthFormats)
+	{
+		vk::FormatProperties depthFormatProperties = globVKPhysicalDevice.getFormatProperties(format);
+		if (depthFormatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment)
+		{
+			globVKSurfaceDepthFormat = format;
+			break;
+		}
+	}
+
 	// Setup viewports, Vsync
 	vk::Extent2D swapchainSize = vk::Extent2D(width, height);
 

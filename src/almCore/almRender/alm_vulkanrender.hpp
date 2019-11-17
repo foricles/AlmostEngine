@@ -6,6 +6,7 @@
 namespace alme
 {
 
+struct sAlmVulkanVariables;
 class AlmVulkanRender : public IAlmRenderSystem
 {
 public:
@@ -15,21 +16,31 @@ public:
 	void InitRenderAPIInstance() override;
 	void OnWindowResize(unsigned int width, unsigned int height) override;
 
-	void BeginRender() override {}
-	void FinishRender() override {}
+	void BeginRender() override;
+	void FinishRender() override;
 
 private:
 	void InitInstance();
-	void InitDevicePhys();
-	void InitDeviceLogic();
-	void InitSurface();
-	void InitCommandPool();
-	void InitSynch();
+	void InitPhysDevice();
+	void InitLogicalDevice();
+	void InitRenderSurface();
 
-	void DestroyCommands();
-	void CreateCommands();
-	void SetupCommands();
-	void SetupSwapchain(unsigned int width, unsigned int height);
+	void CreateSwapchain(unsigned int width, unsigned int height);
+	void CreateRenderpass();
+	void CreatePipeline();
+	void CreateFramebuffers();
+	void CreateCommandPool();
+	void CreateSynchronization();
+
+	void DeleteSynchronization();
+	void DeleteCommandPool();
+	void DeleteFramebuffers();
+	void DeletePipeline();
+	void DeleteRenderpass();
+	void DeleteSwapchain();
+
+private:
+	sAlmVulkanVariables *m_variables;
 };
 
 }

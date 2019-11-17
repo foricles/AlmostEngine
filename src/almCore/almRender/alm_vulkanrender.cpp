@@ -7,349 +7,587 @@
 #include <array>
 #include <vulkan/vulkan.hpp>
 
+namespace alme
+{
+	struct sAlmVulkanVariables
+	{
+		vk::Instance instance;
+
+		vk::Device device;
+		vk::PhysicalDevice physicalDevice;
+
+		uint32_t graphicsFamilyIndex;
+		vk::Queue graphicsQueue;
+
+		vk::SurfaceKHR surface;
+
+		vk::SwapchainKHR swapChain;
+		std::vector<vk::Image> swapChainImages;
+		vk::Format swapChainImageFormat;
+		vk::Extent2D swapChainExtent;
+		std::vector<vk::ImageView> swapChainImageViews;
+
+		vk::RenderPass renderPass;
+		vk::PipelineLayout pipelineLayout;
+		vk::Pipeline graphicsPipeline;
+
+		std::vector<vk::Framebuffer> swapChainFramebuffers;
+
+		vk::CommandPool commandPool;
+		std::vector<vk::CommandBuffer> commandBuffers;
+
+		vk::Semaphore imageAvailableSemaphore;
+		vk::Semaphore renderFinishedSemaphore;
+	};
+}
+
+#if _DEBUG
+	static VKAPI_ATTR VkBool32 VKAPI_CALL vulkanDebugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+		VkDebugUtilsMessageTypeFlagsEXT messageType,
+		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+		void* pUserData)
+	{
+			ALM_LOG_INFO(pCallbackData->pMessage);
+
+		return VK_FALSE;
+	}
+#endif
+
 using namespace alme;
-
-static vk::Device globVKDevice;
-static vk::Instance globVKInstance;
-static vk::SurfaceKHR globVKSurface;
-static vk::SwapchainKHR globVKSwapchain;
-static vk::PhysicalDevice globVKPhysicalDevice;
-
-static vk::Queue globVKQueue;
-static float globVKQueuePriority;
-static uint32_t globVKQueueFamilyIndex;
-
-static uint32_t globVKCurrentBuffer;
-static vk::CommandPool globVKCommandPool;
-static std::vector<vk::CommandBuffer> globVKCommandBuffers;
-
-static vk::Rect2D globVKRenderArea;
-static vk::Viewport globVKViewport;
-static vk::Extent2D globVKSurfaceSize;
-
-// Swpachain
-struct SwapChainBuffer 
-{
-	vk::Image image;
-	std::array<vk::ImageView, 2> views;
-	vk::Framebuffer frameBuffer;
-};
-
-static std::vector<SwapChainBuffer> globVKSwapchainBuffers;
-
-// Sync
-static std::vector<vk::Fence> globVKWaitFences;
-static vk::Semaphore globVKRenderCompleteSemaphore;
-static vk::Semaphore globVKPresentCompleteSemaphore;
-
-static void findBestExtensions(const std::vector<vk::ExtensionProperties>& installed, const std::vector<const char*>& wanted, std::vector<const char*>& out)
-{
-	for (const char* const& w : wanted) {
-		for (vk::ExtensionProperties const& i : installed) {
-			if (std::string(i.extensionName).compare(w) == 0) {
-				out.emplace_back(w);
-				break;
-			}
-		}
-	}
-}
-
-static void findBestLayers(const std::vector<vk::LayerProperties>& installed, const std::vector<const char*>& wanted, std::vector<const char*>& out)
-{
-	for (const char* const& w : wanted) {
-		for (vk::LayerProperties const& i : installed) {
-			if (std::string(i.layerName).compare(w) == 0) {
-				out.emplace_back(w);
-				break;
-			}
-		}
-	}
-}
-
 
 
 AlmVulkanRender::AlmVulkanRender()
 {
+	m_variables = new sAlmVulkanVariables();
+	ALM_LOG_TEXT("sAlmVulkanVariables: ", sizeof(sAlmVulkanVariables));
 }
 
 AlmVulkanRender::~AlmVulkanRender()
 {
-	globVKDevice.destroyCommandPool(globVKCommandPool);
-	globVKDevice.destroy();
-	globVKInstance.destroy();
+	delete m_variables;
 }
 
 
 void AlmVulkanRender::InitRenderAPIInstance()
 {
 	InitInstance();
-	InitDevicePhys();
-	InitDeviceLogic();
-	InitSurface();
-	SetupSwapchain(640, 480);
-	InitCommandPool();
-	InitSynch();
+	InitPhysDevice();
+	InitLogicalDevice();
+	InitRenderSurface();
+
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+	RECT rect;
+	if (GetWindowRect(GetActiveWindow(), &rect))
+	{
+		int width = rect.right - rect.left;
+		int height = rect.bottom - rect.top;
+		CreateSwapchain(width, height);
+	}
+#endif
+
+	CreateRenderpass();
+	//CreatePipeline();
+	CreateFramebuffers();
+	CreateCommandPool();
+	CreateSynchronization();
 }
 
 void AlmVulkanRender::OnWindowResize(unsigned int width, unsigned int height)
 {
-	globVKDevice.waitIdle();
-	DestroyCommands();
-	CreateCommands();
-	SetupCommands();
-	SetupSwapchain(width, height);
+	DeleteSynchronization();
+	DeleteCommandPool();
+	DeleteFramebuffers();
+	//DeletePipeline();
+	DeleteRenderpass();
+	DeleteSwapchain();
+
+	CreateSwapchain(width, height);
+	CreateRenderpass();
+	//CreatePipeline();
+	CreateFramebuffers();
+	CreateCommandPool();
+	CreateSynchronization();
 }
+
+
+
+void AlmVulkanRender::BeginRender()
+{
+	vk::CommandBufferBeginInfo beginInfo;
+	beginInfo.setFlags(vk::CommandBufferUsageFlagBits::eSimultaneousUse);
+
+	vk::ClearColorValue clearColor;
+	vk::ClearValue clearValue;
+	clearValue.color = clearColor;
+
+	vk::ImageSubresourceRange imageRange;
+	imageRange.setLayerCount(1).setLevelCount(1);
+	imageRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
+
+	for (vk::CommandBuffer &buffer : m_variables->commandBuffers) 
+	{
+		buffer.begin(beginInfo);
+		buffer.clearColorImage(m_variables->swapChainImages[0], vk::ImageLayout::eGeneral, &clearColor, 1, &imageRange);
+		buffer.end();
+	}
+
+}
+
+void AlmVulkanRender::FinishRender()
+{
+	uint32_t imageIndex;
+	vk::Result result = m_variables->device.acquireNextImageKHR(m_variables->swapChain, UINT64_MAX, m_variables->imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR)
+	{
+		OnWindowResize(m_variables->swapChainExtent.width, m_variables->swapChainExtent.height);
+		return;
+	}
+
+	vk::SubmitInfo submitInfo;
+	submitInfo.setCommandBufferCount(1);
+	submitInfo.setPCommandBuffers(&m_variables->commandBuffers[imageIndex]);
+	submitInfo.setSignalSemaphoreCount(1);
+	submitInfo.setPSignalSemaphores(&m_variables->renderFinishedSemaphore);
+
+	m_variables->graphicsQueue.submit(1, &submitInfo, VK_NULL_HANDLE);
+
+	vk::PresentInfoKHR presentInfo;
+	presentInfo.setSwapchainCount(1);
+	presentInfo.setPSwapchains(&m_variables->swapChain);
+	presentInfo.setPImageIndices(&imageIndex);
+	submitInfo.setWaitSemaphoreCount(1);
+	submitInfo.setPWaitSemaphores(&m_variables->imageAvailableSemaphore);
+
+	result = m_variables->graphicsQueue.presentKHR(presentInfo);
+	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR)
+	{
+		OnWindowResize(m_variables->swapChainExtent.width, m_variables->swapChainExtent.height);
+		return;
+	}
+	m_variables->device.waitIdle();
+}
+
+
 
 void AlmVulkanRender::InitInstance()
 {
 	std::vector<vk::ExtensionProperties> installedExtensions = vk::enumerateInstanceExtensionProperties();
-	std::vector<const char*> wantedExtensions =
+	const std::vector<const char*> wantedExtensions =
 	{
-		VK_KHR_SURFACE_EXTENSION_NAME,
+		VK_KHR_SURFACE_EXTENSION_NAME
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
-		VK_KHR_WIN32_SURFACE_EXTENSION_NAME
+		, VK_KHR_WIN32_SURFACE_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_MACOS_MVK)
-		VK_MVK_MACOS_SURFACE_EXTENSION_NAME
+		, VK_MVK_MACOS_SURFACE_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
-		VK_KHR_XCB_SURFACE_EXTENSION_NAME
+		, VK_KHR_XCB_SURFACE_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-		VK_KHR_ANDROID_SURFACE_EXTENSION_NAME
+		, VK_KHR_ANDROID_SURFACE_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_XLIB_KHR)
-		VK_KHR_XLIB_SURFACE_EXTENSION_NAME
+		, VK_KHR_XLIB_SURFACE_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
-		VK_KHR_XCB_SURFACE_EXTENSION_NAME
+		, VK_KHR_XCB_SURFACE_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-		VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME
+		, VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_MIR_KHR) || defined(VK_USE_PLATFORM_DISPLAY_KHR)
-		VK_KHR_DISPLAY_EXTENSION_NAME
+		, VK_KHR_DISPLAY_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
-		VK_KHR_ANDROID_SURFACE_EXTENSION_NAME
+		, VK_KHR_ANDROID_SURFACE_EXTENSION_NAME
 #elif defined(VK_USE_PLATFORM_IOS_MVK)
-		VK_MVK_IOS_SURFACE_EXTENSION_NAME
+		, VK_MVK_IOS_SURFACE_EXTENSION_NAME
+#endif
+
+#if _DEBUG
+		, VK_EXT_DEBUG_UTILS_EXTENSION_NAME
 #endif
 	};
 
-	std::vector<const char*> extNames = {};
-	findBestExtensions(installedExtensions, wantedExtensions, extNames);
-	std::vector<const char*>wantedLayers =
+	for (const char *ext : wantedExtensions)
 	{
-#ifdef _DEBUG
-		"VK_LAYER_LUNARG_standard_validation"
-#endif
-	};
+		auto cmp = [ext](const vk::ExtensionProperties &prop) ->bool { return std::strcmp(prop.extensionName, ext); };
+		auto fnd = std::find_if(installedExtensions.begin(), installedExtensions.end(), cmp);
+		ALM_LOG_ASSERT(fnd != installedExtensions.end(), "Extension not supported: ", ext);
+	}
 
-	std::vector<const char*> layerNames = {};
+	vk::ApplicationInfo appInfo;
+	appInfo.setApiVersion(VK_MAKE_VERSION(1, 0, 2));
+	appInfo.setEngineVersion(VK_MAKE_VERSION(0, 1, 0));
+	appInfo.setPEngineName("AlmostEngine");
+	appInfo.setPApplicationName("");
+
+	vk::InstanceCreateInfo instanceInfo;
+	instanceInfo.setPApplicationInfo(&appInfo);
+	instanceInfo.setEnabledExtensionCount(wantedExtensions.size());
+	instanceInfo.setPpEnabledExtensionNames(wantedExtensions.data());
+	instanceInfo.setEnabledLayerCount(0);
+	instanceInfo.setPpEnabledLayerNames(nullptr);
+
+#if _DEBUG
 	std::vector<vk::LayerProperties> installedLayers = vk::enumerateInstanceLayerProperties();
-	findBestLayers(installedLayers, wantedLayers, layerNames);
+	const std::vector<const char*> validationLayers =
+	{
+		"VK_LAYER_KHRONOS_validation"
+	};
+	for (const char *layer : validationLayers)
+	{
+		auto cmp = [layer](const vk::LayerProperties &prop) ->bool { return std::strcmp(prop.layerName, layer); };
+		auto fnd = std::find_if(installedLayers.begin(), installedLayers.end(), cmp);
+		ALM_LOG_ASSERT(fnd != installedLayers.end(), "Layer not supported: ", layer);
+	}
 
-	vk::ApplicationInfo app_info("sandbox", 1, "AlmostEngine", 1, VK_API_VERSION_1_1);
-	vk::InstanceCreateInfo info(vk::InstanceCreateFlags(), &app_info, layerNames.size(), layerNames.data(), extNames.size(), extNames.data());
+	instanceInfo.setEnabledLayerCount(validationLayers.size());
+	instanceInfo.setPpEnabledLayerNames(validationLayers.data());
+#endif
 
-	vk::Result res = vk::createInstance(&info, nullptr, &globVKInstance);
-	ALM_LOG_ASSERT(res == vk::Result::eSuccess, "Failed to init vulkan instance!");
+
+
+	m_variables->instance = vk::createInstance(instanceInfo);
+
+
+
+#if _DEBUG
+	vk::DebugUtilsMessengerCreateInfoEXT debugInfo;
+	debugInfo.setMessageSeverity(
+		vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
+		vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+		vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
+		vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo
+	);
+	debugInfo.setMessageType(
+		vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+		vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation |
+		vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance
+	);
+	debugInfo.setPfnUserCallback(vulkanDebugCallback);
+
+	VkDebugUtilsMessengerEXT debugMessenger;
+	auto instance = (VkInstance)m_variables->instance;
+	auto debInf = (VkDebugUtilsMessengerCreateInfoEXT)debugInfo;
+	auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+	if (func != nullptr)
+	{
+		VkResult ttt = func(instance, &debInf, nullptr, &debugMessenger);
+		if (ttt != VK_SUCCESS) ALM_LOG_ERROR("Failded to create DebugCallback");
+	}
+	else ALM_LOG_ERROR("Failded to create DebugCallback");
+#endif
 }
 
-void AlmVulkanRender::InitDevicePhys()
+void AlmVulkanRender::InitPhysDevice()
 {
-	bool bassert = false;
-	for (auto & device : globVKInstance.enumeratePhysicalDevices())
+	std::vector<vk::PhysicalDevice> devices = m_variables->instance.enumeratePhysicalDevices();
+	m_variables->physicalDevice = devices[0];
+	for (const vk::PhysicalDevice &device : devices)
 	{
-		globVKQueueFamilyIndex = 0;
-		for (auto queueFamily : device.getQueueFamilyProperties())
+		auto & props = device.getProperties();
+		if (props.deviceType == vk::PhysicalDeviceType::eDiscreteGpu)
 		{
-			if (queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
-			{
-				bassert = true;
-				globVKPhysicalDevice = device;
-				break;
-			}
-			++globVKQueueFamilyIndex;
+			ALM_LOG_INFO("Selected GPU: ", props.deviceName);
+			m_variables->physicalDevice = device;
+			break;
 		}
 	}
 
-	ALM_LOG_ASSERT(bassert, "Failed to find physical device!");
-}
-
-void AlmVulkanRender::InitDeviceLogic()
-{
-	std::vector<vk::ExtensionProperties> installedDeviceExtensions = globVKPhysicalDevice.enumerateDeviceExtensionProperties();
-	std::vector<const char*> deviceExtensions = {};
-	std::vector<const char*> wantedDeviceExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-	findBestExtensions(installedDeviceExtensions, wantedDeviceExtensions, deviceExtensions);
-
-	vk::DeviceQueueCreateInfo qcinfo;
-	qcinfo.setQueueFamilyIndex(globVKQueueFamilyIndex);
-	qcinfo.setQueueCount(1);
-	globVKQueuePriority = 0.5f;
-	qcinfo.setPQueuePriorities(&globVKQueuePriority);
-
-	vk::DeviceCreateInfo dinfo;
-	dinfo.setPQueueCreateInfos(&qcinfo);
-	dinfo.setQueueCreateInfoCount(1);
-	dinfo.setPpEnabledExtensionNames(deviceExtensions.data());
-	dinfo.setEnabledExtensionCount(static_cast<uint32_t>(deviceExtensions.size()));
-
-	globVKDevice = globVKPhysicalDevice.createDevice(dinfo);
-	globVKQueue = globVKDevice.getQueue(globVKQueueFamilyIndex, 0);
-}
-
-void alme::AlmVulkanRender::InitSurface()
-{
-#ifdef ALM_OS_WINDOWS
-
-	HWND hwnd = GetActiveWindow();
-	vk::Win32SurfaceCreateInfoKHR info(vk::Win32SurfaceCreateFlagsKHR(), GetModuleHandle(nullptr), hwnd);
-	globVKSurface = globVKInstance.createWin32SurfaceKHR(info);
-
-	VkBool32 isSupported = globVKPhysicalDevice.getSurfaceSupportKHR(globVKQueueFamilyIndex, globVKSurface);
-#else
-	ALM_LOG_ASSERT(false, "Not implemented render surface!");
-#endif // ALM_OS_WINDOWS
-}
-
-void AlmVulkanRender::InitCommandPool()
-{
-	vk::CommandPoolCreateInfo info(
-		vk::CommandPoolCreateFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer),
-		globVKQueueFamilyIndex
-	);
-	globVKCommandPool = globVKDevice.createCommandPool(info);
-}
-
-void AlmVulkanRender::InitSynch()
-{
-	// Semaphore used to ensures that image presentation is complete before starting to submit again
-	globVKPresentCompleteSemaphore = globVKDevice.createSemaphore(vk::SemaphoreCreateInfo());
-
-	// Semaphore used to ensures that all commands submitted have been finished before submitting the image to the queue
-	globVKRenderCompleteSemaphore = globVKDevice.createSemaphore(vk::SemaphoreCreateInfo());
-
-	// Fence for command buffer completion
-	globVKWaitFences.resize(globVKSwapchainBuffers.size());
-
-	for (size_t i = 0; i < globVKWaitFences.size(); i++)
+	m_variables->graphicsFamilyIndex = 0;
+	std::vector<vk::QueueFamilyProperties> queueProps = m_variables->physicalDevice.getQueueFamilyProperties();
+	for (const vk::QueueFamilyProperties &prop : queueProps)
 	{
-		globVKWaitFences[i] = globVKDevice.createFence(vk::FenceCreateInfo(vk::FenceCreateFlagBits::eSignaled));
+		if (prop.queueFlags & vk::QueueFlagBits::eGraphics)
+			break;
+		++m_variables->graphicsFamilyIndex;
 	}
 }
 
-
-
-
-void alme::AlmVulkanRender::DestroyCommands()
+void AlmVulkanRender::InitLogicalDevice()
 {
-}
+	float priority = 1;
+	vk::DeviceQueueCreateInfo queueInfo;
+	queueInfo.setQueueCount(1);
+	queueInfo.setPQueuePriorities(&priority);
+	queueInfo.setQueueFamilyIndex(m_variables->graphicsFamilyIndex);
 
-void alme::AlmVulkanRender::CreateCommands()
-{
-	vk::CommandBufferAllocateInfo info(
-		globVKCommandPool,
-		vk::CommandBufferLevel::ePrimary,
-		static_cast<uint32_t>(globVKSwapchainBuffers.size())
-	);
-	globVKCommandBuffers = globVKDevice.allocateCommandBuffers(info);
-}
+	vk::PhysicalDeviceFeatures deviceFeatures;
 
-void alme::AlmVulkanRender::SetupCommands()
-{
-}
-
-void AlmVulkanRender::SetupSwapchain(unsigned int width, unsigned int height)
-{
-	vk::Format globVKSurfaceColorFormat;
-	vk::Format globVKSurfaceDepthFormat;
-	vk::ColorSpaceKHR globVKSurfaceColorSpace;
-
-	std::vector<vk::SurfaceFormatKHR> surfaceFormats = globVKPhysicalDevice.getSurfaceFormatsKHR(globVKSurface);
-	if (surfaceFormats.size() == 1 && surfaceFormats[0].format == vk::Format::eUndefined)
-		globVKSurfaceColorFormat = vk::Format::eB8G8R8A8Unorm;
-	else
-		globVKSurfaceColorFormat = surfaceFormats[0].format;
-	globVKSurfaceColorSpace = surfaceFormats[0].colorSpace;
-
-
-	std::vector<vk::Format> depthFormats = {
-		vk::Format::eD32SfloatS8Uint,
-		vk::Format::eD32Sfloat,
-		vk::Format::eD24UnormS8Uint,
-		vk::Format::eD16UnormS8Uint,
-		vk::Format::eD16Unorm
+	const std::vector<const char*> deviceExtensions = 
+	{
+		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
 
-	for (vk::Format& format : depthFormats)
+	vk::DeviceCreateInfo deviceInfo;
+	deviceInfo.setQueueCreateInfoCount(1);
+	deviceInfo.setPQueueCreateInfos(&queueInfo);
+	deviceInfo.setPEnabledFeatures(&deviceFeatures);
+	deviceInfo.setEnabledExtensionCount(deviceExtensions.size());
+	deviceInfo.setPpEnabledExtensionNames(deviceExtensions.data());
+
+	m_variables->device = m_variables->physicalDevice.createDevice(deviceInfo);
+	m_variables->graphicsQueue = m_variables->device.getQueue(m_variables->graphicsFamilyIndex, 0);
+}
+
+void AlmVulkanRender::InitRenderSurface()
+{
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+
+	vk::Win32SurfaceCreateInfoKHR surfaceInfo;
+	surfaceInfo.setHinstance(GetModuleHandle(nullptr));
+	surfaceInfo.setHwnd(GetActiveWindow());
+
+	m_variables->surface = m_variables->instance.createWin32SurfaceKHR(surfaceInfo);
+	vk::Bool32 isSuport = m_variables->physicalDevice.getSurfaceSupportKHR(m_variables->graphicsFamilyIndex, m_variables->surface);
+	ALM_LOG_ASSERT(isSuport, "Render surface not supported");
+
+#endif
+}
+
+void AlmVulkanRender::CreateSwapchain(unsigned int width, unsigned int height)
+{
+	vk::SurfaceCapabilitiesKHR capabilities = m_variables->physicalDevice.getSurfaceCapabilitiesKHR(m_variables->surface);
+	std::vector<vk::SurfaceFormatKHR> formats = m_variables->physicalDevice.getSurfaceFormatsKHR(m_variables->surface);
+	std::vector<vk::PresentModeKHR> presentModes = m_variables->physicalDevice.getSurfacePresentModesKHR(m_variables->surface);
+
+	vk::SwapchainCreateInfoKHR swapchainInfo;
+	swapchainInfo.setMinImageCount(2);
+	swapchainInfo.setSurface(m_variables->surface);
+	swapchainInfo.setImageFormat(formats[0].format);
+	swapchainInfo.setImageColorSpace(formats[0].colorSpace);
+	swapchainInfo.setImageExtent(capabilities.currentExtent);
+	swapchainInfo.setImageArrayLayers(1);
+	swapchainInfo.setImageUsage(vk::ImageUsageFlagBits::eColorAttachment);
+	swapchainInfo.setPreTransform(capabilities.currentTransform);
+	swapchainInfo.setImageSharingMode(vk::SharingMode::eExclusive);
+	swapchainInfo.setPQueueFamilyIndices(nullptr);
+	swapchainInfo.setQueueFamilyIndexCount(0);
+	swapchainInfo.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque);
+	swapchainInfo.setClipped(true);
+	swapchainInfo.setPresentMode(vk::PresentModeKHR::eFifo);
+
+	m_variables->swapChain = m_variables->device.createSwapchainKHR(swapchainInfo);
+
+	m_variables->swapChainImages = m_variables->device.getSwapchainImagesKHR(m_variables->swapChain);
+	m_variables->swapChainExtent = capabilities.currentExtent;
+	m_variables->swapChainImageFormat = formats[0].format;
+
+	m_variables->swapChainImageViews.reserve(m_variables->swapChainImages.size());
+	for (auto & image : m_variables->swapChainImages)
 	{
-		vk::FormatProperties depthFormatProperties = globVKPhysicalDevice.getFormatProperties(format);
-		if (depthFormatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eDepthStencilAttachment)
-		{
-			globVKSurfaceDepthFormat = format;
-			break;
-		}
+		vk::ImageSubresourceRange subresRange;
+		subresRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
+		subresRange.setBaseMipLevel(0);
+		subresRange.setBaseArrayLayer(0);
+		subresRange.setLayerCount(1);
+		subresRange.setLevelCount(1);
+
+		vk::ImageViewCreateInfo imageViewInfo;
+		imageViewInfo.setImage(image);
+		imageViewInfo.setViewType(vk::ImageViewType::e2D);
+		imageViewInfo.setFormat(m_variables->swapChainImageFormat);
+		imageViewInfo.setComponents(vk::ComponentMapping()); // VK_COMPONENT_SWIZZLE_IDENTITY
+		imageViewInfo.setSubresourceRange(subresRange);
+
+		m_variables->swapChainImageViews.push_back(m_variables->device.createImageView(imageViewInfo));
 	}
+}
 
-	// Setup viewports, Vsync
-	vk::Extent2D swapchainSize = vk::Extent2D(width, height);
+void AlmVulkanRender::CreateRenderpass()
+{
+	vk::AttachmentDescription colorAttachment;
+	colorAttachment.setFormat(m_variables->swapChainImageFormat);
+	colorAttachment.setSamples(vk::SampleCountFlagBits::e1);
+	colorAttachment.setLoadOp(vk::AttachmentLoadOp::eClear);
+	colorAttachment.setStoreOp(vk::AttachmentStoreOp::eStore);
+	colorAttachment.setStencilLoadOp(vk::AttachmentLoadOp::eDontCare);
+	colorAttachment.setStencilStoreOp(vk::AttachmentStoreOp::eDontCare);
+	colorAttachment.setInitialLayout(vk::ImageLayout::eUndefined);
+	colorAttachment.setFinalLayout(vk::ImageLayout::ePresentSrcKHR);
 
-	// All framebuffers / attachments will be the same size as the surface
-	vk::SurfaceCapabilitiesKHR surfaceCapabilities = globVKPhysicalDevice.getSurfaceCapabilitiesKHR(globVKSurface);
-	if (!(surfaceCapabilities.currentExtent.width == -1 || surfaceCapabilities.currentExtent.height == -1)) {
-		swapchainSize = surfaceCapabilities.currentExtent;
-		globVKRenderArea = vk::Rect2D(vk::Offset2D(), swapchainSize);
-		globVKViewport = vk::Viewport(0.0f, 0.0f, static_cast<float>(swapchainSize.width), static_cast<float>(swapchainSize.height), 0, 1.0f);
-	}
+	vk::AttachmentReference attachmentReference;
+	attachmentReference.setAttachment(0);
+	attachmentReference.setLayout(vk::ImageLayout::eColorAttachmentOptimal);
 
-	// VSync
-	std::vector<vk::PresentModeKHR> surfacePresentModes = globVKPhysicalDevice.getSurfacePresentModesKHR(globVKSurface);
-	vk::PresentModeKHR presentMode = vk::PresentModeKHR::eImmediate;
+	vk::SubpassDescription subpass;
+	subpass.setColorAttachmentCount(1);
+	subpass.setPColorAttachments(&attachmentReference);
+	subpass.setPipelineBindPoint(vk::PipelineBindPoint::eGraphics);
 
-	for (vk::PresentModeKHR& pm : surfacePresentModes) {
-		if (pm == vk::PresentModeKHR::eMailbox) {
-			presentMode = vk::PresentModeKHR::eMailbox;
-			break;
-		}
-	}
+	vk::RenderPassCreateInfo renderPassInfo;
+	renderPassInfo.setAttachmentCount(1);
+	renderPassInfo.setPAttachments(&colorAttachment);
+	renderPassInfo.setSubpassCount(1);
+	renderPassInfo.setPSubpasses(&subpass);
 
-	// Create Swapchain, Images, Frame Buffers
+	m_variables->renderPass = m_variables->device.createRenderPass(renderPassInfo);
+}
 
-	globVKDevice.waitIdle();
-	vk::SwapchainKHR oldSwapchain = globVKSwapchain;
+void AlmVulkanRender::CreatePipeline()
+{
+	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+	vertexInputInfo.setVertexBindingDescriptionCount(0);
+	vertexInputInfo.setPVertexBindingDescriptions(nullptr);
+	vertexInputInfo.setVertexAttributeDescriptionCount(0);
+	vertexInputInfo.setPVertexAttributeDescriptions(nullptr);
 
-	// Some devices can support more than 2 buffers, but during my tests they would crash on fullscreen ~ ag
-	// Tested on an NVIDIA 1080 and 165 Hz 2K display
-	auto clamp = [](uint32_t a, uint32_t mi, uint32_t mx) -> uint32_t { return a < mi ? mi : (a > mx ? mx : a); };
-	uint32_t backbufferCount = clamp(surfaceCapabilities.maxImageCount, 1U, 2U);
+	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+	inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+	inputAssembly.setPrimitiveRestartEnable(false);
 
-	globVKSwapchain = globVKDevice.createSwapchainKHR(
-		vk::SwapchainCreateInfoKHR(
-			vk::SwapchainCreateFlagsKHR(),
-			globVKSurface,
-			backbufferCount,
-			globVKSurfaceColorFormat,
-			globVKSurfaceColorSpace,
-			swapchainSize,
-			1,
-			vk::ImageUsageFlagBits::eColorAttachment,
-			vk::SharingMode::eExclusive,
-			1,
-			&globVKQueueFamilyIndex,
-			vk::SurfaceTransformFlagBitsKHR::eIdentity,
-			vk::CompositeAlphaFlagBitsKHR::eOpaque,
-			presentMode,
-			VK_TRUE,
-			oldSwapchain
-		)
-	);
+	vk::Viewport viewport;
+	viewport.setX(0).setY(0);
+	viewport.setMinDepth(0).setMaxDepth(1);
+	viewport.setWidth(static_cast<float>(m_variables->swapChainExtent.width));
+	viewport.setHeight(static_cast<float>(m_variables->swapChainExtent.height));
 
-	globVKSurfaceSize = vk::Extent2D(clamp(swapchainSize.width, 1U, 8192U), clamp(swapchainSize.height, 1U, 8192U));
-	globVKRenderArea = vk::Rect2D(vk::Offset2D(), globVKSurfaceSize);
-	globVKViewport = vk::Viewport(0.0f, 0.0f, static_cast<float>(globVKSurfaceSize.width), static_cast<float>(globVKSurfaceSize.height), 0, 1.0f);
+	vk::Rect2D scissor = {};
+	scissor.setOffset(vk::Offset2D(0, 0));
+	scissor.setExtent(m_variables->swapChainExtent);
 
+	vk::PipelineViewportStateCreateInfo viewportState;
+	viewportState.setScissorCount(1);
+	viewportState.setViewportCount(1);
+	viewportState.setPScissors(&scissor);
+	viewportState.setPViewports(&viewport);
 
-	// Destroy previous swapchain
-	if (oldSwapchain != vk::SwapchainKHR(nullptr))
+	vk::PipelineRasterizationStateCreateInfo rasterizer;
+	rasterizer.setDepthClampEnable(false);
+	rasterizer.setRasterizerDiscardEnable(false);
+	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
+	rasterizer.setLineWidth(1);
+	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
+	rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
+	rasterizer.setDepthBiasEnable(false);
+	rasterizer.setDepthBiasConstantFactor(0);
+	rasterizer.setDepthBiasClamp(0);
+	rasterizer.setDepthBiasSlopeFactor(0);
+
+	vk::PipelineMultisampleStateCreateInfo multisampling;
+	multisampling.setSampleShadingEnable(false);
+	multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e2);
+	multisampling.setMinSampleShading(1);
+	multisampling.setPSampleMask(nullptr);
+	multisampling.setAlphaToCoverageEnable(false);
+	multisampling.setAlphaToOneEnable(false);
+
+	vk::PipelineColorBlendAttachmentState colorBlendAttachment;
+	colorBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+	colorBlendAttachment.setBlendEnable(false);
+	colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eOne);
+	colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eZero);
+	colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd);
+	colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
+	colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
+	colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd);
+
+	vk::PipelineColorBlendStateCreateInfo colorBlending;
+	colorBlending.setLogicOpEnable(false);
+	colorBlending.setLogicOp(vk::LogicOp::eCopy);
+	colorBlending.setAttachmentCount(1);
+	colorBlending.setPAttachments(&colorBlendAttachment);
+	colorBlending.setBlendConstants({ {0, 0, 0, 0} });
+
+	vk::DynamicState dynamicStates[] = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
+
+	vk::PipelineDynamicStateCreateInfo dynamicState;
+	dynamicState.setDynamicStateCount(2);
+	dynamicState.setPDynamicStates(dynamicStates);
+
+	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
+	pipelineLayoutInfo.setSetLayoutCount(0);
+	pipelineLayoutInfo.setPushConstantRangeCount(0);
+
+	m_variables->pipelineLayout = m_variables->device.createPipelineLayout(pipelineLayoutInfo);
+
+	vk::GraphicsPipelineCreateInfo pipelineInfo;
+	pipelineInfo.setStageCount(1);
+	pipelineInfo.setPStages(nullptr);
+	//pipelineInfo.pStages = shaderStages;
+	pipelineInfo.setPVertexInputState(&vertexInputInfo);
+	pipelineInfo.setPInputAssemblyState(&inputAssembly);
+	pipelineInfo.setPViewportState(&viewportState);
+	pipelineInfo.setPRasterizationState(&rasterizer);
+	pipelineInfo.setPMultisampleState(&multisampling);
+	pipelineInfo.setPColorBlendState(&colorBlending);
+	pipelineInfo.setLayout(m_variables->pipelineLayout);
+	pipelineInfo.setRenderPass(m_variables->renderPass);
+	pipelineInfo.setSubpass(0);
+	pipelineInfo.setBasePipelineIndex(-1);
+
+	m_variables->graphicsPipeline = m_variables->device.createGraphicsPipeline(vk::PipelineCache(), pipelineInfo);
+}
+
+void AlmVulkanRender::CreateFramebuffers()
+{
+	m_variables->swapChainFramebuffers.reserve(m_variables->swapChainImageViews.size());
+	for (const vk::ImageView &iview : m_variables->swapChainImageViews)
 	{
-		globVKDevice.destroySwapchainKHR(oldSwapchain);
-	}
+		std::vector<vk::ImageView> asas = { iview };
+		vk::FramebufferCreateInfo framebufferInfo;
+		framebufferInfo.setRenderPass(m_variables->renderPass);
+		framebufferInfo.setLayers(1);
+		framebufferInfo.setAttachmentCount(1);
+		framebufferInfo.setWidth(m_variables->swapChainExtent.width);
+		framebufferInfo.setHeight(m_variables->swapChainExtent.height);
+		framebufferInfo.setPAttachments(asas.data());
 
-	// Resize swapchain buffers for use later
-	globVKSwapchainBuffers.resize(backbufferCount);
+		m_variables->swapChainFramebuffers.push_back(m_variables->device.createFramebuffer(framebufferInfo));
+	}
+}
+
+void AlmVulkanRender::CreateCommandPool()
+{
+	vk::CommandPoolCreateInfo poolInfo;
+	poolInfo.setQueueFamilyIndex(m_variables->graphicsFamilyIndex);
+	m_variables->commandPool = m_variables->device.createCommandPool(poolInfo);
+
+	vk::CommandBufferAllocateInfo allocInfo;
+	allocInfo.setCommandPool(m_variables->commandPool);
+	allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
+	allocInfo.setCommandBufferCount(m_variables->swapChainFramebuffers.size());
+	m_variables->commandBuffers = m_variables->device.allocateCommandBuffers(allocInfo);
+}
+
+void AlmVulkanRender::CreateSynchronization()
+{
+	m_variables->imageAvailableSemaphore = m_variables->device.createSemaphore(vk::SemaphoreCreateInfo());
+	m_variables->renderFinishedSemaphore = m_variables->device.createSemaphore(vk::SemaphoreCreateInfo());
+}
+
+
+
+void AlmVulkanRender::DeleteSynchronization()
+{
+	m_variables->device.destroySemaphore(m_variables->renderFinishedSemaphore);
+	m_variables->device.destroySemaphore(m_variables->imageAvailableSemaphore);
+}
+
+void AlmVulkanRender::DeleteCommandPool()
+{
+	m_variables->device.destroyCommandPool(m_variables->commandPool);
+}
+
+void AlmVulkanRender::DeleteFramebuffers()
+{
+	for (auto framebuffer : m_variables->swapChainFramebuffers)
+		m_variables->device.destroyFramebuffer(framebuffer);
+	m_variables->swapChainFramebuffers.clear();
+}
+
+void AlmVulkanRender::DeletePipeline()
+{
+	m_variables->device.destroyPipelineLayout(m_variables->pipelineLayout);
+	m_variables->device.destroyPipeline(m_variables->graphicsPipeline);
+}
+
+void AlmVulkanRender::DeleteRenderpass()
+{
+	m_variables->device.destroyRenderPass(m_variables->renderPass);
+}
+
+void AlmVulkanRender::DeleteSwapchain()
+{
+	for (auto imageView : m_variables->swapChainImageViews)
+		m_variables->device.destroyImageView(imageView);
+	m_variables->swapChainImageViews.clear();
+
+	m_variables->device.destroySwapchainKHR(m_variables->swapChain);
+	m_variables->swapChainImages.clear();
 }

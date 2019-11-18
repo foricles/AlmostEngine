@@ -85,8 +85,9 @@ const char * io::AlmFile::Load()
 		uint32_t size = ftell(file);
 		m_data = new char[size + 1];
 		fseek(file, 0, SEEK_SET);
-		fread(m_data, size, 1, file);
+		fread(m_data, sizeof(char), size, file);
 		fclose(file);
+		m_size = size;
 	}
 
 	return m_data;
@@ -125,10 +126,22 @@ void alme::io::AlmFile::Write(const char * data, uint32_t size)
 	SAFE_DELETE_DATA(m_data);
 	m_data = new char[size+1];
 	memcpy_s(m_data, size, data, size);
+	m_size = size;
 }
 
 void alme::io::AlmFile::Save()
 {
+	FILE *file = NULL;
+#ifdef ALM_UNICODE
+	_wfopen_s(&file, GetFullPath().c_str(), L"w");
+#else
+	fopen(&file, GetFullPath().c_str(), "w");
+#endif // ALM_UNICODE
+	if (file)
+	{
+		fwrite(m_data, sizeof(char), m_size, file);
+		fclose(file);
+	}
 }
 
 void alme::io::AlmFile::SaveAsync()

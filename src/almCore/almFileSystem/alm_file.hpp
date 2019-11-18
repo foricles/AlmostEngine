@@ -43,6 +43,7 @@ public:
 
 private:
 	char *m_data;
+	uint32_t m_size;
 	std::almstring m_filepath;
 	std::future<void> m_future;
 };

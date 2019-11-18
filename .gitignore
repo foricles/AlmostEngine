@@ -47,3 +47,4 @@
 *.log
 *.ipch
 *.filters
+sandbox/bin/Debug/Sandbox/AlmostLog.html

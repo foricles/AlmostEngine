@@ -7,6 +7,7 @@
 #include <iostream>
 #include "almCore/almSceneSystem/alm_iscene.hpp"
 #include <almCore/almEvents/alm_eventhandler.hpp>
+#include <almCore/almMath/factorial.hpp>
 
 class Some : public alme::AlmEventHandler
 {
@@ -61,9 +62,6 @@ public:
 		alme::AlmDelegate<int, char> test;
 		test.Add<SimpleScene>(this, &SimpleScene::test);
 		test.Add<SimpleScene>(this, &SimpleScene::test);
-		test.Add<SimpleScene>(this, &SimpleScene::test);
-		test.Add<SimpleScene>(this, &SimpleScene::test);
-		test.Add<SimpleScene>(this, &SimpleScene::test);
 
 		{
 			Some s;
@@ -71,8 +69,13 @@ public:
 			test.Execute(1, 'C');
 		}
 			test.Execute(1, 'C');
-			test.Execute(1, 'C');
-			test.Execute(1, 'C');
+
+			for (int i(13); i < 20; ++i)
+				std::cout << alme::kmu::factorial(i)() << std::endl;
+
+			alme::kmu::factorial a1(3), a2(5);
+			std::cout << a1() << " | " << a2() << std::endl;
+			std::cout << a1 / a2 << " | " << a2 / a1 << std::endl;
 	}
 
 	void test(int a, char c)

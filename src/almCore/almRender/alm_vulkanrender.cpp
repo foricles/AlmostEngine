@@ -205,7 +205,7 @@ void AlmVulkanRender::InitInstance()
 
 	for (const char *ext : wantedExtensions)
 	{
-		auto cmp = [ext](const vk::ExtensionProperties &prop) ->bool { return std::strcmp(prop.extensionName, ext); };
+		auto cmp = [ext](const vk::ExtensionProperties &prop) ->bool { return std::strcmp(prop.extensionName, ext) == 0; };
 		auto fnd = std::find_if(installedExtensions.begin(), installedExtensions.end(), cmp);
 		ALM_LOG_ASSERT(fnd != installedExtensions.end(), "Extension not supported: ", ext);
 	}
@@ -231,7 +231,7 @@ void AlmVulkanRender::InitInstance()
 	};
 	for (const char *layer : validationLayers)
 	{
-		auto cmp = [layer](const vk::LayerProperties &prop) ->bool { return std::strcmp(prop.layerName, layer); };
+		auto cmp = [layer](const vk::LayerProperties &prop) ->bool { return std::strcmp(prop.layerName, layer) == 0; };
 		auto fnd = std::find_if(installedLayers.begin(), installedLayers.end(), cmp);
 		ALM_LOG_ASSERT(fnd != installedLayers.end(), "Layer not supported: ", layer);
 	}

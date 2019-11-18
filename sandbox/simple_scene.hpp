@@ -8,6 +8,7 @@
 #include "almCore/almSceneSystem/alm_iscene.hpp"
 #include <almCore/almEvents/alm_eventhandler.hpp>
 #include <almCore/almMath/factorial.hpp>
+#include <almCore/almRender/alm_camera.hpp>
 
 class Some : public alme::AlmEventHandler
 {
@@ -76,6 +77,12 @@ public:
 			alme::kmu::factorial a1(3), a2(5);
 			std::cout << a1() << " | " << a2() << std::endl;
 			std::cout << a1 / a2 << " | " << a2 / a1 << std::endl;
+
+			alme::AlmCamera camera;
+			camera.GetTransform().SetPosition(1, 2, 3);
+			camera.SetPerspective(65, 0.3f, 100, 640, 480);
+			std::cout << camera.GetProjectionMatrix().toString() << std::endl;
+			std::cout << camera.GetCameraMatrix().toString() << std::endl;
 	}
 
 	void test(int a, char c)

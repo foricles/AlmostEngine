@@ -135,7 +135,7 @@ void AlmVulkanRender::BeginRender()
 	for (vk::CommandBuffer &buffer : m_variables->commandBuffers) 
 	{
 		buffer.begin(beginInfo);
-		buffer.clearColorImage(m_variables->swapChainImages[0], vk::ImageLayout::eGeneral, &clearColor, 1, &imageRange);
+		buffer.clearColorImage(m_variables->swapChainImages[0], vk::ImageLayout::eTransferDstOptimal, &clearColor, 1, &imageRange);
 		buffer.end();
 	}
 
@@ -561,12 +561,14 @@ void AlmVulkanRender::CreateCommandPool()
 {
 	vk::CommandPoolCreateInfo poolInfo;
 	poolInfo.setQueueFamilyIndex(m_variables->graphicsFamilyIndex);
+	poolInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
 	m_variables->commandPool = m_variables->device.createCommandPool(poolInfo);
 
 	vk::CommandBufferAllocateInfo allocInfo;
 	allocInfo.setCommandPool(m_variables->commandPool);
 	allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
 	allocInfo.setCommandBufferCount(m_variables->swapChainFramebuffers.size());
+
 	m_variables->commandBuffers = m_variables->device.allocateCommandBuffers(allocInfo);
 }
 

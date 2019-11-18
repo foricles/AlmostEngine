@@ -14,6 +14,18 @@ AlmEngineEntryPoint::~AlmEngineEntryPoint()
 {
 }
 
+void AlmEngineEntryPoint::SetupApplicationInfo()
+{
+	m_descriptor.m_applicationName = "AlmostEngine";
+	m_descriptor.m_applicationVersion = makeVersion(0, 1, 0);
+	m_descriptor.m_credits.push_back("Eugeniy Kudriashov");
+}
+
+uint32_t alme::AlmEngineEntryPoint::makeVersion(uint32_t major, uint32_t minor, uint32_t patch)
+{
+	return (((major) << 22) | ((minor) << 12) | (patch));
+}
+
 void AlmEngineEntryPoint::InitializeEngineComponents()
 {
 	m_engine.SetSceneManager<AlmSceneManager>();
@@ -24,6 +36,7 @@ void AlmEngineEntryPoint::InitializeEngineComponents()
 
 void alme::AlmEngineEntryPoint::Run()
 {
+	SetupApplicationInfo();
 	InitializeEngineComponents();
 	InitializeSsettings();
 	m_engine.InititalizeSubsystems();

@@ -5,6 +5,16 @@
 
 namespace alme
 {
+
+class AlmApplicationDescriptor
+{
+public:
+	uint32_t m_applicationVersion;
+	std::string m_applicationName;
+	std::vector<std::string> m_credits;
+
+};
+
 class AlmEngineEntryPoint
 {
 public:
@@ -18,7 +28,11 @@ public:
 
 	virtual void Run() final;
 
+	virtual void SetupApplicationInfo();
+	uint32_t makeVersion(uint32_t major, uint32_t minor, uint32_t patch);
+
 private:
+	AlmApplicationDescriptor m_descriptor;
 	AlmostEngine m_engine;
 
 };

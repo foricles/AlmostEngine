@@ -48,7 +48,14 @@ namespace alme
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
-			ALM_LOG_INFO(pCallbackData->pMessage);
+		if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+		{
+			ALM_LOG_ERROR(pCallbackData->pMessage);
+		}
+		else if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+		{
+			ALM_LOG_WARNING(pCallbackData->pMessage);
+		}
 
 		return VK_FALSE;
 	}
@@ -173,7 +180,7 @@ void AlmVulkanRender::FinishRender()
 void AlmVulkanRender::InitInstance()
 {
 	std::vector<vk::ExtensionProperties> installedExtensions = vk::enumerateInstanceExtensionProperties();
-	const std::vector<const char*> wantedExtensions =
+	std::vector<const char*> wantedExtensions =
 	{
 		VK_KHR_SURFACE_EXTENSION_NAME
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
@@ -203,11 +210,20 @@ void AlmVulkanRender::InitInstance()
 #endif
 	};
 
-	for (const char *ext : wantedExtensions)
+	auto ext = wantedExtensions.begin();
+	while (ext != wantedExtensions.end())
 	{
-		auto cmp = [ext](const vk::ExtensionProperties &prop) ->bool { return std::strcmp(prop.extensionName, ext) == 0; };
+		auto cmp = [ext](const vk::ExtensionProperties &prop) ->bool { return std::strcmp(prop.extensionName, (*ext)) == 0; };
 		auto fnd = std::find_if(installedExtensions.begin(), installedExtensions.end(), cmp);
-		ALM_LOG_ASSERT(fnd != installedExtensions.end(), "Extension not supported: ", ext);
+		if (fnd == installedExtensions.end())
+		{
+			ALM_LOG_WARNING("Extension", (*ext), "not supported and will be removed");
+			ext = wantedExtensions.erase(ext);
+		}
+		else
+		{
+			++ext;
+		}
 	}
 
 	vk::ApplicationInfo appInfo;
@@ -225,15 +241,25 @@ void AlmVulkanRender::InitInstance()
 
 #if _DEBUG
 	std::vector<vk::LayerProperties> installedLayers = vk::enumerateInstanceLayerProperties();
-	const std::vector<const char*> validationLayers =
+	std::vector<const char*> validationLayers =
 	{
-		"VK_LAYER_KHRONOS_validation"
+		"VK_LAYER_KHRONOS_validation",
+		"VK_LAYER_LUNARG_standard_validation"
 	};
-	for (const char *layer : validationLayers)
+	auto layer = validationLayers.begin();
+	while(layer != validationLayers.end())
 	{
-		auto cmp = [layer](const vk::LayerProperties &prop) ->bool { return std::strcmp(prop.layerName, layer) == 0; };
+		auto cmp = [layer](const vk::LayerProperties &prop) ->bool { return std::strcmp(prop.layerName, (*layer)) == 0; };
 		auto fnd = std::find_if(installedLayers.begin(), installedLayers.end(), cmp);
-		ALM_LOG_ASSERT(fnd != installedLayers.end(), "Layer not supported: ", layer);
+		if (fnd == installedLayers.end())
+		{
+			ALM_LOG_WARNING("Layer", (*layer), "not supported and will be removed");
+			layer = validationLayers.erase(layer);
+		}
+		else
+		{
+			++layer;
+		}
 	}
 
 	instanceInfo.setEnabledLayerCount(validationLayers.size());
@@ -353,7 +379,7 @@ void AlmVulkanRender::CreateSwapchain(unsigned int width, unsigned int height)
 	swapchainInfo.setImageColorSpace(formats[0].colorSpace);
 	swapchainInfo.setImageExtent(capabilities.currentExtent);
 	swapchainInfo.setImageArrayLayers(1);
-	swapchainInfo.setImageUsage(vk::ImageUsageFlagBits::eColorAttachment);
+	swapchainInfo.setImageUsage(vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferDst);
 	swapchainInfo.setPreTransform(capabilities.currentTransform);
 	swapchainInfo.setImageSharingMode(vk::SharingMode::eExclusive);
 	swapchainInfo.setPQueueFamilyIndices(nullptr);
@@ -519,14 +545,13 @@ void AlmVulkanRender::CreateFramebuffers()
 	m_variables->swapChainFramebuffers.reserve(m_variables->swapChainImageViews.size());
 	for (const vk::ImageView &iview : m_variables->swapChainImageViews)
 	{
-		std::vector<vk::ImageView> asas = { iview };
 		vk::FramebufferCreateInfo framebufferInfo;
 		framebufferInfo.setRenderPass(m_variables->renderPass);
 		framebufferInfo.setLayers(1);
 		framebufferInfo.setAttachmentCount(1);
 		framebufferInfo.setWidth(m_variables->swapChainExtent.width);
 		framebufferInfo.setHeight(m_variables->swapChainExtent.height);
-		framebufferInfo.setPAttachments(asas.data());
+		framebufferInfo.setPAttachments(&iview);
 
 		m_variables->swapChainFramebuffers.push_back(m_variables->device.createFramebuffer(framebufferInfo));
 	}

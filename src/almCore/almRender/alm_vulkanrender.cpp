@@ -36,8 +36,9 @@ namespace alme
 		vk::CommandPool commandPool;
 		std::vector<vk::CommandBuffer> commandBuffers;
 
-		vk::Semaphore imageAvailableSemaphore;
-		vk::Semaphore renderFinishedSemaphore;
+		std::vector<vk::Semaphore> imageAvailableSemaphore;
+		std::vector<vk::Semaphore> renderFinishedSemaphore;
+		uint32_t currentFrame;
 	};
 }
 
@@ -67,6 +68,7 @@ using namespace alme;
 AlmVulkanRender::AlmVulkanRender()
 {
 	m_variables = new sAlmVulkanVariables();
+	m_variables->currentFrame = 0;
 	ALM_LOG_TEXT("sAlmVulkanVariables: ", sizeof(sAlmVulkanVariables));
 }
 
@@ -102,6 +104,8 @@ void AlmVulkanRender::InitRenderAPIInstance()
 
 void AlmVulkanRender::OnWindowResize(unsigned int width, unsigned int height)
 {
+	m_variables->device.waitIdle();
+
 	DeleteSynchronization();
 	DeleteCommandPool();
 	DeleteFramebuffers();
@@ -143,43 +147,60 @@ void AlmVulkanRender::BeginRender()
 
 void AlmVulkanRender::FinishRender()
 {
+	m_variables->currentFrame = (m_variables->currentFrame + 1) % 2;
+	vk::Semaphore &image = m_variables->imageAvailableSemaphore[m_variables->currentFrame];
+	vk::Semaphore &render = m_variables->renderFinishedSemaphore[m_variables->currentFrame];
 	uint32_t imageIndex;
-	vk::Result result = m_variables->device.acquireNextImageKHR(m_variables->swapChain, UINT64_MAX, m_variables->imageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+	vk::Result result = m_variables->device.acquireNextImageKHR(m_variables->swapChain, UINT64_MAX, image, VK_NULL_HANDLE, &imageIndex);
+
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR)
 	{
 		OnWindowResize(m_variables->swapChainExtent.width, m_variables->swapChainExtent.height);
 		return;
 	}
 
+	vk::PipelineStageFlags waitStages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
 	vk::SubmitInfo submitInfo;
 	submitInfo.setCommandBufferCount(1);
 	submitInfo.setPCommandBuffers(&m_variables->commandBuffers[imageIndex]);
 	submitInfo.setSignalSemaphoreCount(1);
-	submitInfo.setPSignalSemaphores(&m_variables->renderFinishedSemaphore);
+	submitInfo.setPSignalSemaphores(&render);
+	submitInfo.setPWaitDstStageMask(waitStages);
+	submitInfo.setWaitSemaphoreCount(1);
+	submitInfo.setPWaitSemaphores(&image);
 
-	m_variables->graphicsQueue.submit(1, &submitInfo, VK_NULL_HANDLE);
+	m_variables->device.waitIdle();
+	result = m_variables->graphicsQueue.submit(1, &submitInfo, VK_NULL_HANDLE);
+	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR)
+	{
+		OnWindowResize(m_variables->swapChainExtent.width, m_variables->swapChainExtent.height);
+		return;
+	}
+	m_variables->graphicsQueue.waitIdle();
 
 	vk::PresentInfoKHR presentInfo;
 	presentInfo.setSwapchainCount(1);
 	presentInfo.setPSwapchains(&m_variables->swapChain);
 	presentInfo.setPImageIndices(&imageIndex);
 	submitInfo.setWaitSemaphoreCount(1);
-	submitInfo.setPWaitSemaphores(&m_variables->imageAvailableSemaphore);
+	submitInfo.setPWaitSemaphores(&render);
 
-	result = m_variables->graphicsQueue.presentKHR(presentInfo);
+	result = m_variables->graphicsQueue.presentKHR(&presentInfo);
 	if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR)
 	{
 		OnWindowResize(m_variables->swapChainExtent.width, m_variables->swapChainExtent.height);
 		return;
 	}
+
 	m_variables->device.waitIdle();
+	ALM_LOG_INFO("finish_render");
 }
 
 
 
 void AlmVulkanRender::InitInstance()
 {
-	std::vector<vk::ExtensionProperties> installedExtensions = vk::enumerateInstanceExtensionProperties();
+	std::vector<vk::ExtensionProperties> installedExtensions = vk::enumerateInstanceExtensionProperties().value;
 	std::vector<const char*> wantedExtensions =
 	{
 		VK_KHR_SURFACE_EXTENSION_NAME
@@ -240,7 +261,7 @@ void AlmVulkanRender::InitInstance()
 	instanceInfo.setPpEnabledLayerNames(nullptr);
 
 #if _DEBUG
-	std::vector<vk::LayerProperties> installedLayers = vk::enumerateInstanceLayerProperties();
+	std::vector<vk::LayerProperties> installedLayers = vk::enumerateInstanceLayerProperties().value;
 	std::vector<const char*> validationLayers =
 	{
 		"VK_LAYER_KHRONOS_validation",
@@ -268,7 +289,7 @@ void AlmVulkanRender::InitInstance()
 
 
 
-	m_variables->instance = vk::createInstance(instanceInfo);
+	m_variables->instance = vk::createInstance(instanceInfo).value;
 
 
 
@@ -302,7 +323,7 @@ void AlmVulkanRender::InitInstance()
 
 void AlmVulkanRender::InitPhysDevice()
 {
-	std::vector<vk::PhysicalDevice> devices = m_variables->instance.enumeratePhysicalDevices();
+	std::vector<vk::PhysicalDevice> devices = m_variables->instance.enumeratePhysicalDevices().value;
 	m_variables->physicalDevice = devices[0];
 	for (const vk::PhysicalDevice &device : devices)
 	{
@@ -347,7 +368,7 @@ void AlmVulkanRender::InitLogicalDevice()
 	deviceInfo.setEnabledExtensionCount(deviceExtensions.size());
 	deviceInfo.setPpEnabledExtensionNames(deviceExtensions.data());
 
-	m_variables->device = m_variables->physicalDevice.createDevice(deviceInfo);
+	m_variables->device = m_variables->physicalDevice.createDevice(deviceInfo).value;
 	m_variables->graphicsQueue = m_variables->device.getQueue(m_variables->graphicsFamilyIndex, 0);
 }
 
@@ -359,8 +380,8 @@ void AlmVulkanRender::InitRenderSurface()
 	surfaceInfo.setHinstance(GetModuleHandle(nullptr));
 	surfaceInfo.setHwnd(GetActiveWindow());
 
-	m_variables->surface = m_variables->instance.createWin32SurfaceKHR(surfaceInfo);
-	vk::Bool32 isSuport = m_variables->physicalDevice.getSurfaceSupportKHR(m_variables->graphicsFamilyIndex, m_variables->surface);
+	m_variables->surface = m_variables->instance.createWin32SurfaceKHR(surfaceInfo).value;
+	vk::Bool32 isSuport = m_variables->physicalDevice.getSurfaceSupportKHR(m_variables->graphicsFamilyIndex, m_variables->surface).value;
 	ALM_LOG_ASSERT(isSuport, "Render surface not supported");
 
 #endif
@@ -368,9 +389,9 @@ void AlmVulkanRender::InitRenderSurface()
 
 void AlmVulkanRender::CreateSwapchain(unsigned int width, unsigned int height)
 {
-	vk::SurfaceCapabilitiesKHR capabilities = m_variables->physicalDevice.getSurfaceCapabilitiesKHR(m_variables->surface);
-	std::vector<vk::SurfaceFormatKHR> formats = m_variables->physicalDevice.getSurfaceFormatsKHR(m_variables->surface);
-	std::vector<vk::PresentModeKHR> presentModes = m_variables->physicalDevice.getSurfacePresentModesKHR(m_variables->surface);
+	vk::SurfaceCapabilitiesKHR capabilities = m_variables->physicalDevice.getSurfaceCapabilitiesKHR(m_variables->surface).value;
+	std::vector<vk::SurfaceFormatKHR> formats = m_variables->physicalDevice.getSurfaceFormatsKHR(m_variables->surface).value;
+	std::vector<vk::PresentModeKHR> presentModes = m_variables->physicalDevice.getSurfacePresentModesKHR(m_variables->surface).value;
 
 	vk::SwapchainCreateInfoKHR swapchainInfo;
 	swapchainInfo.setMinImageCount(2);
@@ -386,11 +407,11 @@ void AlmVulkanRender::CreateSwapchain(unsigned int width, unsigned int height)
 	swapchainInfo.setQueueFamilyIndexCount(0);
 	swapchainInfo.setCompositeAlpha(vk::CompositeAlphaFlagBitsKHR::eOpaque);
 	swapchainInfo.setClipped(true);
-	swapchainInfo.setPresentMode(vk::PresentModeKHR::eFifo);
+	swapchainInfo.setPresentMode(vk::PresentModeKHR::eMailbox);
 
-	m_variables->swapChain = m_variables->device.createSwapchainKHR(swapchainInfo);
+	m_variables->swapChain = m_variables->device.createSwapchainKHR(swapchainInfo).value;
 
-	m_variables->swapChainImages = m_variables->device.getSwapchainImagesKHR(m_variables->swapChain);
+	m_variables->swapChainImages = m_variables->device.getSwapchainImagesKHR(m_variables->swapChain).value;
 	m_variables->swapChainExtent = capabilities.currentExtent;
 	m_variables->swapChainImageFormat = formats[0].format;
 
@@ -411,7 +432,7 @@ void AlmVulkanRender::CreateSwapchain(unsigned int width, unsigned int height)
 		imageViewInfo.setComponents(vk::ComponentMapping()); // VK_COMPONENT_SWIZZLE_IDENTITY
 		imageViewInfo.setSubresourceRange(subresRange);
 
-		m_variables->swapChainImageViews.push_back(m_variables->device.createImageView(imageViewInfo));
+		m_variables->swapChainImageViews.push_back(m_variables->device.createImageView(imageViewInfo).value);
 	}
 }
 
@@ -442,7 +463,7 @@ void AlmVulkanRender::CreateRenderpass()
 	renderPassInfo.setSubpassCount(1);
 	renderPassInfo.setPSubpasses(&subpass);
 
-	m_variables->renderPass = m_variables->device.createRenderPass(renderPassInfo);
+	m_variables->renderPass = m_variables->device.createRenderPass(renderPassInfo).value;
 }
 
 void AlmVulkanRender::CreatePipeline()
@@ -520,7 +541,7 @@ void AlmVulkanRender::CreatePipeline()
 	pipelineLayoutInfo.setSetLayoutCount(0);
 	pipelineLayoutInfo.setPushConstantRangeCount(0);
 
-	m_variables->pipelineLayout = m_variables->device.createPipelineLayout(pipelineLayoutInfo);
+	m_variables->pipelineLayout = m_variables->device.createPipelineLayout(pipelineLayoutInfo).value;
 
 	vk::GraphicsPipelineCreateInfo pipelineInfo;
 	pipelineInfo.setStageCount(1);
@@ -537,7 +558,7 @@ void AlmVulkanRender::CreatePipeline()
 	pipelineInfo.setSubpass(0);
 	pipelineInfo.setBasePipelineIndex(-1);
 
-	m_variables->graphicsPipeline = m_variables->device.createGraphicsPipeline(vk::PipelineCache(), pipelineInfo);
+	m_variables->graphicsPipeline = m_variables->device.createGraphicsPipeline(vk::PipelineCache(), pipelineInfo).value;
 }
 
 void AlmVulkanRender::CreateFramebuffers()
@@ -553,7 +574,7 @@ void AlmVulkanRender::CreateFramebuffers()
 		framebufferInfo.setHeight(m_variables->swapChainExtent.height);
 		framebufferInfo.setPAttachments(&iview);
 
-		m_variables->swapChainFramebuffers.push_back(m_variables->device.createFramebuffer(framebufferInfo));
+		m_variables->swapChainFramebuffers.push_back(m_variables->device.createFramebuffer(framebufferInfo).value);
 	}
 }
 
@@ -562,28 +583,36 @@ void AlmVulkanRender::CreateCommandPool()
 	vk::CommandPoolCreateInfo poolInfo;
 	poolInfo.setQueueFamilyIndex(m_variables->graphicsFamilyIndex);
 	poolInfo.setFlags(vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
-	m_variables->commandPool = m_variables->device.createCommandPool(poolInfo);
+	m_variables->commandPool = m_variables->device.createCommandPool(poolInfo).value;
 
 	vk::CommandBufferAllocateInfo allocInfo;
 	allocInfo.setCommandPool(m_variables->commandPool);
 	allocInfo.setLevel(vk::CommandBufferLevel::ePrimary);
 	allocInfo.setCommandBufferCount(m_variables->swapChainFramebuffers.size());
 
-	m_variables->commandBuffers = m_variables->device.allocateCommandBuffers(allocInfo);
+	m_variables->commandBuffers = m_variables->device.allocateCommandBuffers(allocInfo).value;
 }
 
 void AlmVulkanRender::CreateSynchronization()
 {
-	m_variables->imageAvailableSemaphore = m_variables->device.createSemaphore(vk::SemaphoreCreateInfo());
-	m_variables->renderFinishedSemaphore = m_variables->device.createSemaphore(vk::SemaphoreCreateInfo());
+	for (size_t i(0); i < m_variables->swapChainImages.size(); ++i)
+	{
+		m_variables->imageAvailableSemaphore.push_back(m_variables->device.createSemaphore(vk::SemaphoreCreateInfo()).value);
+		m_variables->renderFinishedSemaphore.push_back(m_variables->device.createSemaphore(vk::SemaphoreCreateInfo()).value);
+	}
 }
 
 
 
 void AlmVulkanRender::DeleteSynchronization()
 {
-	m_variables->device.destroySemaphore(m_variables->renderFinishedSemaphore);
-	m_variables->device.destroySemaphore(m_variables->imageAvailableSemaphore);
+	for (int i(0); i < m_variables->swapChainImages.size(); ++i)
+	{
+		m_variables->device.destroySemaphore(m_variables->renderFinishedSemaphore[i]);
+		m_variables->device.destroySemaphore(m_variables->imageAvailableSemaphore[i]);
+	}
+	m_variables->imageAvailableSemaphore.clear();
+	m_variables->renderFinishedSemaphore.clear();
 }
 
 void AlmVulkanRender::DeleteCommandPool()

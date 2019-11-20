@@ -56,6 +56,7 @@ filter "configurations:Release"
 			{
 				"GLEW_STATIC",
 				"VK_USE_PLATFORM_WIN32_KHR",
+				"VULKAN_HPP_NO_EXCEPTIONS"
 			}
 			
 		postbuildcommands

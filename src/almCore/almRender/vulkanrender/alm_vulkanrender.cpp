@@ -1,47 +1,12 @@
 #include "alm_vulkanrender.hpp"
-#include "../alm_log.hpp"
-#include "../alm_platform.hpp"
+#include "../src/almCore/almRender/vulkanrender/alm_vkinstance.hpp"
+#include "../src/almCore/alm_log.hpp"
+#include "../src/almCore/alm_platform.hpp"
+#include "../src/almCore/almRender/vulkanrender/vkmaterial/alm_vkmaterial.hpp"
 
 #include <string>
 #include <vector>
 #include <array>
-#include <vulkan/vulkan.hpp>
-
-namespace alme
-{
-	struct sAlmVulkanVariables
-	{
-		vk::Instance instance;
-
-		vk::Device device;
-		vk::PhysicalDevice physicalDevice;
-
-		uint32_t graphicsFamilyIndex;
-		vk::Queue graphicsQueue;
-
-		vk::SurfaceKHR surface;
-
-		vk::SwapchainKHR swapChain;
-		std::vector<vk::Image> swapChainImages;
-		vk::Format swapChainImageFormat;
-		vk::Extent2D swapChainExtent;
-		std::vector<vk::ImageView> swapChainImageViews;
-
-		vk::RenderPass renderPass;
-		vk::PipelineLayout pipelineLayout;
-		vk::Pipeline graphicsPipeline;
-
-		std::vector<vk::Framebuffer> swapChainFramebuffers;
-
-		vk::CommandPool commandPool;
-		std::vector<vk::CommandBuffer> commandBuffers;
-
-		std::vector<vk::Semaphore> imageAvailableSemaphore;
-		std::vector<vk::Semaphore> renderFinishedSemaphore;
-		uint32_t currentFrame;
-	};
-}
-
 #if _DEBUG
 	static VKAPI_ATTR VkBool32 VKAPI_CALL vulkanDebugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -67,9 +32,9 @@ using namespace alme;
 
 AlmVulkanRender::AlmVulkanRender()
 {
-	m_variables = new sAlmVulkanVariables();
+	m_variables = new sAlmVulkanContext();
 	m_variables->currentFrame = 0;
-	ALM_LOG_TEXT("sAlmVulkanVariables: ", sizeof(sAlmVulkanVariables));
+	ALM_LOG_TEXT("sAlmVulkanVariables: ", sizeof(sAlmVulkanContext));
 }
 
 AlmVulkanRender::~AlmVulkanRender()
@@ -194,6 +159,14 @@ void AlmVulkanRender::FinishRender()
 
 	m_variables->device.waitIdle();
 	ALM_LOG_INFO("finish_render");
+}
+
+
+
+IAlmRenderMaterial * AlmVulkanRender::CreateMaterial()
+{
+	//TODO: write manager
+	return new AlmVkMaterial(m_variables);
 }
 
 
@@ -606,7 +579,7 @@ void AlmVulkanRender::CreateSynchronization()
 
 void AlmVulkanRender::DeleteSynchronization()
 {
-	for (int i(0); i < m_variables->swapChainImages.size(); ++i)
+	for (size_t i(0); i < m_variables->swapChainImages.size(); ++i)
 	{
 		m_variables->device.destroySemaphore(m_variables->renderFinishedSemaphore[i]);
 		m_variables->device.destroySemaphore(m_variables->imageAvailableSemaphore[i]);

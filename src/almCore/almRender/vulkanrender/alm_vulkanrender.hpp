@@ -1,12 +1,12 @@
 #ifndef _ALM_VULKAN_RENDER_SYSTEM_HPP_
 #define _ALM_VULKAN_RENDER_SYSTEM_HPP_
 
-#include "interface/alm_irendersys.hpp"
+#include "../src/almCore/almRender/interface/alm_irendersys.hpp"
 
 namespace alme
 {
 
-struct sAlmVulkanVariables;
+struct sAlmVulkanContext;
 class AlmVulkanRender : public IAlmRenderSystem
 {
 public:
@@ -18,6 +18,8 @@ public:
 
 	void BeginRender() override;
 	void FinishRender() override;
+
+	IAlmRenderMaterial *CreateMaterial() override;
 
 private:
 	void InitInstance();
@@ -40,7 +42,7 @@ private:
 	void DeleteSwapchain();
 
 private:
-	sAlmVulkanVariables *m_variables;
+	sAlmVulkanContext *m_variables;
 };
 
 }

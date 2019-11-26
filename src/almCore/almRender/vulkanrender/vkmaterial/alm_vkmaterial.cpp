@@ -3,15 +3,40 @@
 #include "../src/almCore/alm_log.hpp"
 #include "../src/almCore/almRender/vulkanrender/alm_vkinstance.hpp"
 
+namespace alme
+{
+	struct sVkMatVaribles 
+	{
+		std::vector<eShaderType> shaderTypes;
+		std::vector<vk::PipelineShaderStageCreateInfo> shaderStage;
+		vk::PipelineShaderStageCreateInfo getStage(eShaderType type)
+		{
+			size_t i;
+			for (i = 0; i < shaderTypes.size(); ++i)
+				if (shaderTypes[i] == type) break;
+			return shaderStage[i];
+		}
+
+		vk::Buffer indexBuffer;
+		vk::DeviceMemory indexBufferMemory;
+	};
+}
+
 using namespace alme;
 
 AlmVkMaterial::AlmVkMaterial(sAlmVulkanContext *context)
 	: IAlmRenderMaterial()
+	, m_var(new sVkMatVaribles())
 	, m_context(context)
 	, m_scissorBox(0, 0, 1, 1)
 	, m_cullMode(ePoligonCullMode::eBack)
 	, m_poligonMode (ePoligonDrawMode::eFill)
 {
+}
+
+AlmVkMaterial::~AlmVkMaterial()
+{
+
 }
 
 uint32_t AlmVkMaterial::GetId() const
@@ -84,4 +109,60 @@ ePoligonCullMode alme::AlmVkMaterial::GetPoligonCullMode() const
 void alme::AlmVkMaterial::GetPoligonCullMode(ePoligonCullMode mode)
 {
 	m_cullMode = mode;
+}
+
+void AlmVkMaterial::SetShader(const std::string & shaderpath, eShaderType type)
+{
+	for (eShaderType stype : m_var->shaderTypes)
+	{
+		if (stype == type)
+		{
+			ALM_LOG_ERROR("Shader with type", (int)type, "alredy exist");
+			return;
+		}
+	}
+
+	io::AlmFile shader(L"");
+	if (!shader.Exist())
+	{
+		ALM_LOG_ERROR("Shader not exist", shaderpath);
+		return;
+	}
+
+	std::string body(shader.Load());
+
+	vk::ShaderModuleCreateInfo shaderInfo;
+	shaderInfo.setCodeSize(body.size());
+	shaderInfo.setPCode(reinterpret_cast<const uint32_t*>(body.data()));
+
+	auto shaderModule = m_context->device.createShaderModule(shaderInfo);
+	if (shaderModule.result != vk::Result::eSuccess)
+	{
+		ALM_LOG_ERROR("Failed to create shader", shaderpath);
+		return;
+	}
+
+	vk::PipelineShaderStageCreateInfo shaderStageInfo;
+	shaderStageInfo.setModule(shaderModule.value);
+	shaderStageInfo.setPName("main");
+
+	switch (type)
+	{
+	case eShaderType::eVertex: shaderStageInfo.setStage(vk::ShaderStageFlagBits::eVertex); break;
+	case eShaderType::eFragment: shaderStageInfo.setStage(vk::ShaderStageFlagBits::eFragment); break;
+	case eShaderType::eGeometry: shaderStageInfo.setStage(vk::ShaderStageFlagBits::eGeometry); break;
+	}
+
+	m_var->shaderTypes.push_back(type);
+	m_var->shaderStage.push_back(shaderStageInfo);
+
+	m_context->device.destroyShaderModule(shaderModule.value);
+}
+
+void AlmVkMaterial::Bind()
+{
+}
+
+void AlmVkMaterial::Unbind()
+{
 }

@@ -127,7 +127,7 @@ void alme::AlmTransform::SetRotation(const kmu::vec3 & euler)
 kmu::vec3 alme::AlmTransform::GetScale()
 {
 	if (m_recalModelMatrix)
-		UpdateModelMatrix();
+		UpdateModelMatrix(this);
 
 	kmu::vec3 ret = m_scale;
 
@@ -141,7 +141,7 @@ kmu::vec3 alme::AlmTransform::GetScale()
 kmu::vec3 alme::AlmTransform::GetPosition()
 {
 	if (m_recalModelMatrix)
-		UpdateModelMatrix();
+		UpdateModelMatrix(this);
 
 	kmu::vec3 ret = m_scale;
 
@@ -155,9 +155,9 @@ kmu::vec3 alme::AlmTransform::GetPosition()
 kmu::quaternion alme::AlmTransform::GetRotation()
 {
 	if (m_recalModelMatrix)
-		UpdateModelMatrix();
+		UpdateModelMatrix(this);
 
-	return kmu::mat4::Quaternion(m_modelMatrix);
+	return kmu::Quaternion(m_modelMatrix);
 }
 
 const kmu::vec3 & alme::AlmTransform::GetLocalScale() const
@@ -178,36 +178,36 @@ const kmu::quaternion & alme::AlmTransform::GetLocalRotation() const
 const kmu::mat4 & alme::AlmTransform::GetModelMatrix()
 {
 	if (m_recalModelMatrix)
-		UpdateModelMatrix();
+		UpdateModelMatrix(this);
 
 	return m_modelMatrix;
 }
 
-void AlmTransform::UpdateModelMatrix()
+void AlmTransform::UpdateModelMatrix(AlmTransform *head)
 {
-	AlmTransform *head = this;
 	while (head->m_parent && head->m_parent->m_recalModelMatrix) head = head->m_parent;
 
-	if (m_recalModelMatrix)
+	if (head->m_recalModelMatrix)
 	{
-		m_rotation.normalize();
-		kmu::mat4 rtm(kmu::mat4::Rotation(m_rotation));
-		kmu::mat4 slm(kmu::mat4::Scaling(m_scale.x, m_scale.y, m_scale.z));
-		kmu::mat4 trm(kmu::mat4::Translation(m_position.x, m_position.y, m_position.z));
-		m_modelMatrix = (trm * (rtm * slm));
+		head->m_recalModelMatrix = false;
 
-		if (m_parent) m_modelMatrix = m_parent->m_modelMatrix * m_modelMatrix;
+		head->m_rotation.normalize();
+		kmu::mat4 rtm(kmu::Rotation(head->m_rotation));
+		kmu::mat4 slm(kmu::Scaling(head->m_scale.x, head->m_scale.y, head->m_scale.z));
+		kmu::mat4 trm(kmu::Translation(head->m_position.x, head->m_position.y, head->m_position.z));
+		head->m_modelMatrix = (trm * (rtm * slm));
 
-		m_recalModelMatrix = false;
-		for (AlmTransform *child : m_children)
+		if (head->m_parent)
+			head->m_modelMatrix = head->m_modelMatrix * head->m_parent->m_modelMatrix;
+
+		for (AlmTransform *child : head->m_children)
 		{
 			child->m_recalModelMatrix = true;
-			child->UpdateModelMatrix();
+			UpdateModelMatrix(child);
 		}
+		return;
 	}
-	else
-	{
-		for (AlmTransform *child : m_children)
-			child->UpdateModelMatrix();
-	}
+
+	for (AlmTransform *child : head->m_children)
+		UpdateModelMatrix(child);
 }

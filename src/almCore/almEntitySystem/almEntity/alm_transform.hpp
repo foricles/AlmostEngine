@@ -53,7 +53,7 @@ public:
 
 	const kmu::mat4 & GetModelMatrix();
 
-	void UpdateModelMatrix();
+	static void UpdateModelMatrix(AlmTransform *head);
 
 private:
 	AlmTransform(AlmEntity *owner);

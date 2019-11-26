@@ -6,6 +6,13 @@
 namespace alme
 {
 
+	enum class eShaderType
+	{
+		eVertex,
+		eFragment,
+		eGeometry
+	};
+
 	enum class ePoligonDrawMode
 	{
 		eFill,
@@ -46,6 +53,11 @@ public:
 
 	virtual ePoligonCullMode	GetPoligonCullMode() const = 0;
 	virtual void				GetPoligonCullMode(ePoligonCullMode mode) = 0;
+
+	virtual void				SetShader(const std::string &shaderpath, eShaderType type) = 0;
+
+	virtual void				Bind() = 0;
+	virtual void				Unbind() = 0;
 };
 
 }

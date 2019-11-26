@@ -32,6 +32,10 @@ kmu::quaternion::~quaternion()
 
  const kmu::quaternion & kmu::quaternion::operator=(const quaternion & qut)
 {
+	x = qut.x;
+	y = qut.y;
+	z = qut.z;
+	w = qut.w;
 	return *this;
 }
 

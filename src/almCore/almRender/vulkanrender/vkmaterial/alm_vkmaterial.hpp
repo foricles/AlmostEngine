@@ -3,14 +3,22 @@
 
 #include "../src/almCore/almRender/interface/alm_imaterial.hpp"
 #include <vector>
+#include <memory>
 
 namespace alme
 {
+struct sVkMatVaribles;
 struct sAlmVulkanContext;
 class AlmVkMaterial : public IAlmRenderMaterial
 {
 public:
+	AlmVkMaterial() = delete;
+	AlmVkMaterial(const AlmVkMaterial &rhv) = delete;
+	AlmVkMaterial & operator=(const AlmVkMaterial &rhv) = delete;
+
+public:
 	AlmVkMaterial(sAlmVulkanContext *context);
+	~AlmVkMaterial();
 
 	uint32_t GetId() const override;
 	std::string GetName() const override;
@@ -34,11 +42,17 @@ public:
 	ePoligonCullMode GetPoligonCullMode() const override;
 	void GetPoligonCullMode(ePoligonCullMode mode) override;
 
+	void SetShader(const std::string &shaderpath, eShaderType type) override;
+
+	void Bind() override;
+	void Unbind() override;
+
 private:
-	sAlmVulkanContext *m_context;
-	kmu::vec4 m_scissorBox;
-	ePoligonCullMode m_cullMode;
-	ePoligonDrawMode m_poligonMode;
+	std::unique_ptr<sVkMatVaribles>		m_var;
+	sAlmVulkanContext				   *m_context;
+	kmu::vec4							m_scissorBox;
+	ePoligonCullMode					m_cullMode;
+	ePoligonDrawMode					m_poligonMode;
 };
 
 }

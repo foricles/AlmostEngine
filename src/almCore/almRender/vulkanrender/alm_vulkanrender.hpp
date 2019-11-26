@@ -29,7 +29,6 @@ private:
 
 	void CreateSwapchain(unsigned int width, unsigned int height);
 	void CreateRenderpass();
-	void CreatePipeline();
 	void CreateFramebuffers();
 	void CreateCommandPool();
 	void CreateSynchronization();
@@ -37,7 +36,6 @@ private:
 	void DeleteSynchronization();
 	void DeleteCommandPool();
 	void DeleteFramebuffers();
-	void DeletePipeline();
 	void DeleteRenderpass();
 	void DeleteSwapchain();
 

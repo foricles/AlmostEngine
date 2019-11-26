@@ -32,10 +32,9 @@ public:
 		std::cout << sizeof(alme::io::AlmFile) << std::endl;
 		std::wcout << alme::io::AlmFileSystem::getRootPath() << std::endl;
 		alme::io::AlmFile sss("Sandbox.pdb");
-		//std::wcout << sss.GetFullPath()  << std::endl << (sss.Exist() ? sss.Load() : "hui") << std::endl;
 		std::cout << "start load" << std::endl;
-		sss.LoadAsync();
-		std::wcout << sss.GetContentAsync() << std::endl;
+		sss.Load();
+		std::cout << sss.asString() << std::endl;
 
 		alme::AlmEntityManager mgr;
 		mgr.CreateEntity("Pidor");

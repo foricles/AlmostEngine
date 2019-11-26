@@ -1,5 +1,6 @@
 #include "alm_file.hpp"
 #include <cstdio>
+#include <fstream>
 
 using namespace alme;
 #define SAFE_DELETE_DATA(x) if(x){delete [] x; x = nullptr; }
@@ -68,35 +69,28 @@ bool io::AlmFile::Exist() const
 
 
 
-const char * io::AlmFile::Load()
+const uint8_t * io::AlmFile::Load()
 {
+	SAFE_DELETE_DATA(m_data);
 	FILE *file = NULL;
-	_wfopen_s(&file, GetFullPath().c_str(), L"rt");
-	if (!file)
-	{
-		SAFE_DELETE_DATA(m_data);
-	}
-	else
-	{
-		fseek(file, 0, SEEK_END);
-		uint32_t size = ftell(file);
-		m_data = new char[size + 1];
-		fseek(file, 0, SEEK_SET);
-		fread(m_data, sizeof(char), size, file);
-		fclose(file);
-		m_size = size;
-	}
+	_wfopen_s(&file, GetFullPath().c_str(), L"rb");
+	fseek(file, 0, SEEK_END);
+	m_size = ftell(file);
+	m_data = new uint8_t[m_size];
+	fseek(file, 0, SEEK_SET);
+	fread(m_data, sizeof(uint8_t), m_size, file);
+	fclose(file);
 
 	return m_data;
 }
 
-const char * io::AlmFile::Load(const std::wstring &filepath)
+const uint8_t * io::AlmFile::Load(const std::wstring &filepath)
 {
 	m_filepath = filepath;
 	return Load();
 }
 
-const char * io::AlmFile::Load(const std::string &filepath)
+const uint8_t * io::AlmFile::Load(const std::string &filepath)
 {
 	return Load(StrToWStr(filepath));
 }
@@ -120,18 +114,18 @@ io::AlmFile & io::AlmFile::LoadAsync(const std::string & filepath)
 	return LoadAsync(StrToWStr(filepath));
 }
 
-const char * io::AlmFile::GetContentAsync()
+const uint8_t * io::AlmFile::GetContentAsync()
 {
 	if (m_filepath.size() <= 0) return nullptr;
 	if (!m_data) m_future.get();
 	return m_data;
 }
 
-void io::AlmFile::Write(const char * data, uint32_t size)
+void io::AlmFile::Write(const uint8_t * data, uint32_t size)
 {
 	if (!data) return;
 	SAFE_DELETE_DATA(m_data);
-	m_data = new char[size+1];
+	m_data = new uint8_t[size+1];
 	memcpy_s(m_data, size, data, size);
 	m_size = size;
 }
@@ -139,7 +133,7 @@ void io::AlmFile::Write(const char * data, uint32_t size)
 void io::AlmFile::Save()
 {
 	FILE *file = NULL;
-	_wfopen_s(&file, GetFullPath().c_str(), L"w");
+	_wfopen_s(&file, GetFullPath().c_str(), L"wb");
 	if (file)
 	{
 		fwrite(m_data, sizeof(char), m_size, file);
@@ -150,6 +144,18 @@ void io::AlmFile::Save()
 void io::AlmFile::SaveAsync()
 {
 	std::async(std::launch::async, [this]() { Save(); });
+}
+
+std::vector<uint8_t> io::AlmFile::asBin() const
+{
+	std::vector<uint8_t> ret;
+	ret.assign(m_data, m_data + m_size);
+	return ret;
+}
+
+std::string io::AlmFile::asString() const
+{
+	return std::string((char*)m_data);
 }
 
 std::wstring io::AlmFile::StrToWStr(const std::string & source)

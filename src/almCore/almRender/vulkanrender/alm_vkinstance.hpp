@@ -24,8 +24,6 @@ namespace alme
 		std::vector<vk::ImageView> swapChainImageViews;
 
 		vk::RenderPass renderPass;
-		vk::PipelineLayout pipelineLayout;
-		vk::Pipeline graphicsPipeline;
 
 		std::vector<vk::Framebuffer> swapChainFramebuffers;
 

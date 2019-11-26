@@ -31,24 +31,27 @@ public:
 	std::wstring GetFullPath() const;
 	const std::wstring & GetPath() const;
 
-	const char * Load();
-	const char * Load(const std::string &filepath);
-	const char * Load(const std::wstring &filepath);
+	const uint8_t * Load();
+	const uint8_t * Load(const std::string &filepath);
+	const uint8_t * Load(const std::wstring &filepath);
 
 	AlmFile & LoadAsync();
 	AlmFile & LoadAsync(const std::string &filepath);
 	AlmFile & LoadAsync(const std::wstring &filepath);
-	const char *GetContentAsync();
+	const uint8_t *GetContentAsync();
 
-	void Write(const char *data, uint32_t size);
+	void Write(const uint8_t *data, uint32_t size);
 	void Save();
 	void SaveAsync();
+
+	std::vector<uint8_t> asBin() const;
+	std::string asString() const;
 
 public:
 	std::wstring StrToWStr(const std::string &source);
 
 private:
-	char *m_data;
+	uint8_t *m_data;
 	uint32_t m_size;
 	std::wstring m_filepath;
 	std::future<void> m_future;

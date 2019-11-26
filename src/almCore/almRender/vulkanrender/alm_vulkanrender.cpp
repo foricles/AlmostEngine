@@ -29,6 +29,7 @@
 
 using namespace alme;
 
+static IAlmRenderMaterial *glob_material;
 
 AlmVulkanRender::AlmVulkanRender()
 {
@@ -61,10 +62,13 @@ void AlmVulkanRender::InitRenderAPIInstance()
 #endif
 
 	CreateRenderpass();
-	//CreatePipeline();
 	CreateFramebuffers();
 	CreateCommandPool();
 	CreateSynchronization();
+
+	glob_material = this->CreateMaterial();
+	glob_material->SetShader("sha\\v.spv", eShaderType::eVertex);
+	glob_material->SetShader("sha\\f.spv", eShaderType::eFragment);
 }
 
 void AlmVulkanRender::OnWindowResize(unsigned int width, unsigned int height)
@@ -74,13 +78,11 @@ void AlmVulkanRender::OnWindowResize(unsigned int width, unsigned int height)
 	DeleteSynchronization();
 	DeleteCommandPool();
 	DeleteFramebuffers();
-	//DeletePipeline();
 	DeleteRenderpass();
 	DeleteSwapchain();
 
 	CreateSwapchain(width, height);
 	CreateRenderpass();
-	//CreatePipeline();
 	CreateFramebuffers();
 	CreateCommandPool();
 	CreateSynchronization();
@@ -439,101 +441,6 @@ void AlmVulkanRender::CreateRenderpass()
 	m_variables->renderPass = m_variables->device.createRenderPass(renderPassInfo).value;
 }
 
-void AlmVulkanRender::CreatePipeline()
-{
-	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
-	vertexInputInfo.setVertexBindingDescriptionCount(0);
-	vertexInputInfo.setPVertexBindingDescriptions(nullptr);
-	vertexInputInfo.setVertexAttributeDescriptionCount(0);
-	vertexInputInfo.setPVertexAttributeDescriptions(nullptr);
-
-	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
-	inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
-	inputAssembly.setPrimitiveRestartEnable(false);
-
-	vk::Viewport viewport;
-	viewport.setX(0).setY(0);
-	viewport.setMinDepth(0).setMaxDepth(1);
-	viewport.setWidth(static_cast<float>(m_variables->swapChainExtent.width));
-	viewport.setHeight(static_cast<float>(m_variables->swapChainExtent.height));
-
-	vk::Rect2D scissor = {};
-	scissor.setOffset(vk::Offset2D(0, 0));
-	scissor.setExtent(m_variables->swapChainExtent);
-
-	vk::PipelineViewportStateCreateInfo viewportState;
-	viewportState.setScissorCount(1);
-	viewportState.setViewportCount(1);
-	viewportState.setPScissors(&scissor);
-	viewportState.setPViewports(&viewport);
-
-	vk::PipelineRasterizationStateCreateInfo rasterizer;
-	rasterizer.setDepthClampEnable(false);
-	rasterizer.setRasterizerDiscardEnable(false);
-	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
-	rasterizer.setLineWidth(1);
-	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
-	rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
-	rasterizer.setDepthBiasEnable(false);
-	rasterizer.setDepthBiasConstantFactor(0);
-	rasterizer.setDepthBiasClamp(0);
-	rasterizer.setDepthBiasSlopeFactor(0);
-
-	vk::PipelineMultisampleStateCreateInfo multisampling;
-	multisampling.setSampleShadingEnable(false);
-	multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e2);
-	multisampling.setMinSampleShading(1);
-	multisampling.setPSampleMask(nullptr);
-	multisampling.setAlphaToCoverageEnable(false);
-	multisampling.setAlphaToOneEnable(false);
-
-	vk::PipelineColorBlendAttachmentState colorBlendAttachment;
-	colorBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
-	colorBlendAttachment.setBlendEnable(false);
-	colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eOne);
-	colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eZero);
-	colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd);
-	colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
-	colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
-	colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd);
-
-	vk::PipelineColorBlendStateCreateInfo colorBlending;
-	colorBlending.setLogicOpEnable(false);
-	colorBlending.setLogicOp(vk::LogicOp::eCopy);
-	colorBlending.setAttachmentCount(1);
-	colorBlending.setPAttachments(&colorBlendAttachment);
-	colorBlending.setBlendConstants({ {0, 0, 0, 0} });
-
-	vk::DynamicState dynamicStates[] = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
-
-	vk::PipelineDynamicStateCreateInfo dynamicState;
-	dynamicState.setDynamicStateCount(2);
-	dynamicState.setPDynamicStates(dynamicStates);
-
-	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
-	pipelineLayoutInfo.setSetLayoutCount(0);
-	pipelineLayoutInfo.setPushConstantRangeCount(0);
-
-	m_variables->pipelineLayout = m_variables->device.createPipelineLayout(pipelineLayoutInfo).value;
-
-	vk::GraphicsPipelineCreateInfo pipelineInfo;
-	pipelineInfo.setStageCount(1);
-	pipelineInfo.setPStages(nullptr);
-	//pipelineInfo.pStages = shaderStages;
-	pipelineInfo.setPVertexInputState(&vertexInputInfo);
-	pipelineInfo.setPInputAssemblyState(&inputAssembly);
-	pipelineInfo.setPViewportState(&viewportState);
-	pipelineInfo.setPRasterizationState(&rasterizer);
-	pipelineInfo.setPMultisampleState(&multisampling);
-	pipelineInfo.setPColorBlendState(&colorBlending);
-	pipelineInfo.setLayout(m_variables->pipelineLayout);
-	pipelineInfo.setRenderPass(m_variables->renderPass);
-	pipelineInfo.setSubpass(0);
-	pipelineInfo.setBasePipelineIndex(-1);
-
-	m_variables->graphicsPipeline = m_variables->device.createGraphicsPipeline(vk::PipelineCache(), pipelineInfo).value;
-}
-
 void AlmVulkanRender::CreateFramebuffers()
 {
 	m_variables->swapChainFramebuffers.reserve(m_variables->swapChainImageViews.size());
@@ -598,12 +505,6 @@ void AlmVulkanRender::DeleteFramebuffers()
 	for (auto framebuffer : m_variables->swapChainFramebuffers)
 		m_variables->device.destroyFramebuffer(framebuffer);
 	m_variables->swapChainFramebuffers.clear();
-}
-
-void AlmVulkanRender::DeletePipeline()
-{
-	m_variables->device.destroyPipelineLayout(m_variables->pipelineLayout);
-	m_variables->device.destroyPipeline(m_variables->graphicsPipeline);
 }
 
 void AlmVulkanRender::DeleteRenderpass()

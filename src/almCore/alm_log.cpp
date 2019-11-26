@@ -158,7 +158,7 @@ void AlmostLog::pushIntoFile()
 	{
 		std::string out = m_outHtml.str();
 		io::AlmFile toSave(L"AlmostLog.html");
-		toSave.Write(out.c_str(), out.size());
+		toSave.Write((uint8_t*)out.c_str(), out.size());
 		toSave.Save();
 	}
 }

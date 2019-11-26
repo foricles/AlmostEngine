@@ -17,8 +17,8 @@ namespace alme
 			return shaderStage[i];
 		}
 
-		vk::Buffer indexBuffer;
-		vk::DeviceMemory indexBufferMemory;
+		vk::Pipeline graphicsPipeline;
+		vk::PipelineLayout pipelineLayout;
 	};
 }
 
@@ -129,11 +129,11 @@ void AlmVkMaterial::SetShader(const std::string & shaderpath, eShaderType type)
 		return;
 	}
 
-	std::string body(shader.Load());
+	shader.Load();
 
 	vk::ShaderModuleCreateInfo shaderInfo;
-	shaderInfo.setCodeSize(body.size());
-	shaderInfo.setPCode(reinterpret_cast<const uint32_t*>(body.data()));
+	shaderInfo.setCodeSize(shader.asBin().size());
+	shaderInfo.setPCode(reinterpret_cast<const uint32_t*>(shader.asBin().data()));
 
 	auto shaderModule = m_context->device.createShaderModule(shaderInfo);
 	if (shaderModule.result != vk::Result::eSuccess)
@@ -161,8 +161,100 @@ void AlmVkMaterial::SetShader(const std::string & shaderpath, eShaderType type)
 
 void AlmVkMaterial::Bind()
 {
+	vk::PipelineVertexInputStateCreateInfo vertexInputInfo;
+	vertexInputInfo.setVertexBindingDescriptionCount(0);
+	vertexInputInfo.setPVertexBindingDescriptions(nullptr);
+	vertexInputInfo.setVertexAttributeDescriptionCount(0);
+	vertexInputInfo.setPVertexAttributeDescriptions(nullptr);
+
+	vk::PipelineInputAssemblyStateCreateInfo inputAssembly;
+	inputAssembly.setTopology(vk::PrimitiveTopology::eTriangleList);
+	inputAssembly.setPrimitiveRestartEnable(false);
+
+	vk::Viewport viewport;
+	viewport.setX(0).setY(0);
+	viewport.setMinDepth(0).setMaxDepth(1);
+	viewport.setWidth(static_cast<float>(m_context->swapChainExtent.width));
+	viewport.setHeight(static_cast<float>(m_context->swapChainExtent.height));
+
+	vk::Rect2D scissor = {};
+	scissor.setOffset(vk::Offset2D(0, 0));
+	scissor.setExtent(m_context->swapChainExtent);
+
+	vk::PipelineViewportStateCreateInfo viewportState;
+	viewportState.setScissorCount(1);
+	viewportState.setViewportCount(1);
+	viewportState.setPScissors(&scissor);
+	viewportState.setPViewports(&viewport);
+
+	vk::PipelineRasterizationStateCreateInfo rasterizer;
+	rasterizer.setDepthClampEnable(false);
+	rasterizer.setRasterizerDiscardEnable(false);
+	rasterizer.setPolygonMode(vk::PolygonMode::eFill);
+	rasterizer.setLineWidth(1);
+	rasterizer.setCullMode(vk::CullModeFlagBits::eBack);
+	rasterizer.setFrontFace(vk::FrontFace::eCounterClockwise);
+	rasterizer.setDepthBiasEnable(false);
+	rasterizer.setDepthBiasConstantFactor(0);
+	rasterizer.setDepthBiasClamp(0);
+	rasterizer.setDepthBiasSlopeFactor(0);
+
+	vk::PipelineMultisampleStateCreateInfo multisampling;
+	multisampling.setSampleShadingEnable(false);
+	multisampling.setRasterizationSamples(vk::SampleCountFlagBits::e2);
+	multisampling.setMinSampleShading(1);
+	multisampling.setPSampleMask(nullptr);
+	multisampling.setAlphaToCoverageEnable(false);
+	multisampling.setAlphaToOneEnable(false);
+
+	vk::PipelineColorBlendAttachmentState colorBlendAttachment;
+	colorBlendAttachment.setColorWriteMask(vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA);
+	colorBlendAttachment.setBlendEnable(false);
+	colorBlendAttachment.setSrcColorBlendFactor(vk::BlendFactor::eOne);
+	colorBlendAttachment.setDstColorBlendFactor(vk::BlendFactor::eZero);
+	colorBlendAttachment.setColorBlendOp(vk::BlendOp::eAdd);
+	colorBlendAttachment.setSrcAlphaBlendFactor(vk::BlendFactor::eOne);
+	colorBlendAttachment.setDstAlphaBlendFactor(vk::BlendFactor::eZero);
+	colorBlendAttachment.setAlphaBlendOp(vk::BlendOp::eAdd);
+
+	vk::PipelineColorBlendStateCreateInfo colorBlending;
+	colorBlending.setLogicOpEnable(false);
+	colorBlending.setLogicOp(vk::LogicOp::eCopy);
+	colorBlending.setAttachmentCount(1);
+	colorBlending.setPAttachments(&colorBlendAttachment);
+	colorBlending.setBlendConstants({ {0, 0, 0, 0} });
+
+	vk::DynamicState dynamicStates[] = { vk::DynamicState::eViewport, vk::DynamicState::eLineWidth };
+
+	vk::PipelineDynamicStateCreateInfo dynamicState;
+	dynamicState.setDynamicStateCount(2);
+	dynamicState.setPDynamicStates(dynamicStates);
+
+	vk::PipelineLayoutCreateInfo pipelineLayoutInfo;
+	pipelineLayoutInfo.setSetLayoutCount(0);
+	pipelineLayoutInfo.setPushConstantRangeCount(0);
+
+	m_var->pipelineLayout = m_context->device.createPipelineLayout(pipelineLayoutInfo).value;
+
+	vk::GraphicsPipelineCreateInfo pipelineInfo;
+	pipelineInfo.setStageCount(m_var->shaderStage.size());
+	pipelineInfo.setPStages(m_var->shaderStage.data());
+	pipelineInfo.setPVertexInputState(&vertexInputInfo);
+	pipelineInfo.setPInputAssemblyState(&inputAssembly);
+	pipelineInfo.setPViewportState(&viewportState);
+	pipelineInfo.setPRasterizationState(&rasterizer);
+	pipelineInfo.setPMultisampleState(&multisampling);
+	pipelineInfo.setPColorBlendState(&colorBlending);
+	pipelineInfo.setLayout(m_var->pipelineLayout);
+	pipelineInfo.setRenderPass(m_context->renderPass);
+	pipelineInfo.setSubpass(0);
+	pipelineInfo.setBasePipelineIndex(-1);
+
+	m_var->graphicsPipeline = m_context->device.createGraphicsPipeline(vk::PipelineCache(), pipelineInfo).value;
 }
 
 void AlmVkMaterial::Unbind()
 {
+	m_context->device.destroyPipeline(m_var->graphicsPipeline);
+	m_context->device.destroyPipelineLayout(m_var->pipelineLayout);
 }

@@ -129,11 +129,11 @@ kmu::vec3 alme::AlmTransform::GetScale()
 	if (m_recalModelMatrix)
 		UpdateModelMatrix(this);
 
-	kmu::vec3 ret = m_scale;
+	kmu::vec3 ret;
 
-	ret.x *= m_modelMatrix.at(0, 0);
-	ret.y *= m_modelMatrix.at(1, 1);
-	ret.z *= m_modelMatrix.at(2, 2);
+	ret.x = m_modelMatrix.at(0, 0);
+	ret.y = m_modelMatrix.at(1, 1);
+	ret.z = m_modelMatrix.at(2, 2);
 
 	return ret;
 }
@@ -143,11 +143,11 @@ kmu::vec3 alme::AlmTransform::GetPosition()
 	if (m_recalModelMatrix)
 		UpdateModelMatrix(this);
 
-	kmu::vec3 ret = m_scale;
+	kmu::vec3 ret;
 
-	ret.x *= m_modelMatrix.at(0, 3);
-	ret.y *= m_modelMatrix.at(1, 3);
-	ret.z *= m_modelMatrix.at(2, 3);
+	ret.x = m_modelMatrix.at(0, 3);
+	ret.y = m_modelMatrix.at(1, 3);
+	ret.z = m_modelMatrix.at(2, 3);
 
 	return ret;
 }

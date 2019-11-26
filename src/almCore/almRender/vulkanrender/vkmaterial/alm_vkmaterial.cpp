@@ -122,7 +122,7 @@ void AlmVkMaterial::SetShader(const std::string & shaderpath, eShaderType type)
 		}
 	}
 
-	io::AlmFile shader(L"");
+	io::AlmFile shader(shaderpath);
 	if (!shader.Exist())
 	{
 		ALM_LOG_ERROR("Shader not exist", shaderpath);

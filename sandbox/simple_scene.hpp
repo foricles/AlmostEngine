@@ -31,7 +31,7 @@ public:
 	{
 		std::cout << sizeof(alme::io::AlmFile) << std::endl;
 		std::wcout << alme::io::AlmFileSystem::getRootPath() << std::endl;
-		alme::io::AlmFile sss(L"Sandbox.pdb");
+		alme::io::AlmFile sss("Sandbox.pdb");
 		//std::wcout << sss.GetFullPath()  << std::endl << (sss.Exist() ? sss.Load() : "hui") << std::endl;
 		std::cout << "start load" << std::endl;
 		sss.LoadAsync();
@@ -56,6 +56,8 @@ public:
 
 		std::cout << entity2->GetTransform().GetModelMatrix().toString() << std::endl;
 		std::cout << entity1->GetTransform().GetModelMatrix().toString() << std::endl;
+
+		std::cout << entity2->GetTransform().GetPosition().toString() << " | " << entity2->GetTransform().GetLocalPosition().toString() << std::endl;
 
 		auto sz = sizeof(alme::AlmEntity);
 

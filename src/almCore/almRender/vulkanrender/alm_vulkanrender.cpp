@@ -101,18 +101,17 @@ void AlmVulkanRender::BeginRender()
 	imageRange.setLayerCount(1).setLevelCount(1);
 	imageRange.setAspectMask(vk::ImageAspectFlagBits::eColor);
 
-	for (vk::CommandBuffer &buffer : m_variables->commandBuffers) 
+	for (uint32_t i(0); i < m_variables->swapChainImages.size(); ++i) 
 	{
-		buffer.begin(beginInfo);
-		buffer.clearColorImage(m_variables->swapChainImages[0], vk::ImageLayout::eTransferDstOptimal, &clearColor, 1, &imageRange);
-		buffer.end();
+		m_variables->commandBuffers[i].begin(beginInfo);
+		m_variables->commandBuffers[i].clearColorImage(m_variables->swapChainImages[i], vk::ImageLayout::eTransferDstOptimal, &clearColor, 1, &imageRange);
+		m_variables->commandBuffers[i].end();
 	}
 
 }
 
 void AlmVulkanRender::FinishRender()
 {
-	m_variables->currentFrame = (m_variables->currentFrame + 1) % 2;
 	vk::Semaphore &image = m_variables->imageAvailableSemaphore[m_variables->currentFrame];
 	vk::Semaphore &render = m_variables->renderFinishedSemaphore[m_variables->currentFrame];
 	uint32_t imageIndex;
@@ -159,6 +158,7 @@ void AlmVulkanRender::FinishRender()
 
 	m_variables->device.waitIdle();
 	ALM_LOG_INFO("finish_render");
+	m_variables->currentFrame = (imageIndex + 1) % 2;
 }
 
 

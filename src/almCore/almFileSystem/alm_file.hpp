@@ -14,7 +14,8 @@ class AlmFile
 public:
 	AlmFile();
 	AlmFile(AlmFile &&rhv);
-	AlmFile(const std::almstring &filePath);
+	AlmFile(const std::string &filePath);
+	AlmFile(const std::wstring &filePath);
 	AlmFile &operator=(AlmFile &&rhv);
 
 	AlmFile(const AlmFile &rhv) = delete;
@@ -27,24 +28,29 @@ public:
 	virtual AlmFile *Copy();
 
 	bool Exist() const;
-	std::almstring GetFullPath() const;
-	const std::almstring & GetPath() const;
+	std::wstring GetFullPath() const;
+	const std::wstring & GetPath() const;
 
 	const char * Load();
-	const char * Load(const std::almstring &filepath);
+	const char * Load(const std::string &filepath);
+	const char * Load(const std::wstring &filepath);
 
 	AlmFile & LoadAsync();
-	AlmFile & LoadAsync(const std::almstring &filepath);
+	AlmFile & LoadAsync(const std::string &filepath);
+	AlmFile & LoadAsync(const std::wstring &filepath);
 	const char *GetContentAsync();
 
 	void Write(const char *data, uint32_t size);
 	void Save();
 	void SaveAsync();
 
+public:
+	std::wstring StrToWStr(const std::string &source);
+
 private:
 	char *m_data;
 	uint32_t m_size;
-	std::almstring m_filepath;
+	std::wstring m_filepath;
 	std::future<void> m_future;
 };
 

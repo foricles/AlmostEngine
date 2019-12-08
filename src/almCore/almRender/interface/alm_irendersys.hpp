@@ -6,7 +6,6 @@
 
 namespace alme
 {
-
 class IAlmRenderSystem : public AlmEventHandler
 {
 public:

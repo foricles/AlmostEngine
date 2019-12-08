@@ -1,18 +1,24 @@
 #include "alm_file.hpp"
+#include "alm_flsystem.hpp"
 #include <cstdio>
-#include <fstream>
 
 using namespace alme;
 #define SAFE_DELETE_DATA(x) if(x){delete [] x; x = nullptr; }
 
+std::vector<std::wstring> io::AlmFile::s_filepath;
+
 io::AlmFile::AlmFile()
+	: m_data(nullptr)
+	, m_pathIndex(-1)
 {
 }
 
 io::AlmFile::AlmFile(const std::wstring & filePath)
 	: m_data(nullptr)
-	, m_filepath(filePath)
+	, m_pathIndex(-1)
 {
+	m_pathIndex = s_filepath.size();
+	s_filepath.push_back(filePath);
 }
 
 io::AlmFile::AlmFile(const std::string & filePath)
@@ -24,13 +30,13 @@ io::AlmFile::AlmFile(AlmFile && rhv)
 	: m_data(rhv.m_data)
 {
 	rhv.m_data = nullptr;
-	std::swap(m_filepath, rhv.m_filepath);
+	std::swap(m_pathIndex, rhv.m_pathIndex);
 }
 
 io::AlmFile & alme::io::AlmFile::operator=(AlmFile && rhv)
 {
 	m_data = rhv.m_data;
-	std::swap(m_filepath, rhv.m_filepath);
+	std::swap(m_pathIndex, rhv.m_pathIndex);
 	rhv.m_data = nullptr;
 	return *this;
 }
@@ -49,12 +55,12 @@ io::AlmFile * io::AlmFile::Copy()
 
 std::wstring io::AlmFile::GetFullPath() const
 {
-	return io::AlmFileSystem::getRootPath() + m_filepath;
+	return io::AlmFileSystem::getRootPath() + s_filepath[m_pathIndex];
 }
 
 const std::wstring & io::AlmFile::GetPath() const
 {
-	return m_filepath;
+	return s_filepath[m_pathIndex];
 }
 
 bool io::AlmFile::Exist() const
@@ -69,7 +75,7 @@ bool io::AlmFile::Exist() const
 
 
 
-const uint8_t * io::AlmFile::Load()
+io::AlmFile & io::AlmFile::Load()
 {
 	SAFE_DELETE_DATA(m_data);
 	FILE *file = NULL;
@@ -81,44 +87,24 @@ const uint8_t * io::AlmFile::Load()
 	fread(m_data, sizeof(uint8_t), m_size, file);
 	fclose(file);
 
-	return m_data;
-}
-
-const uint8_t * io::AlmFile::Load(const std::wstring &filepath)
-{
-	m_filepath = filepath;
-	return Load();
-}
-
-const uint8_t * io::AlmFile::Load(const std::string &filepath)
-{
-	return Load(StrToWStr(filepath));
-}
-
-
-io::AlmFile & io::AlmFile::LoadAsync()
-{
-	SAFE_DELETE_DATA(m_data);
-	m_future = std::async(std::launch::async, [this]() mutable { Load(); });
 	return *this;
 }
 
-io::AlmFile & io::AlmFile::LoadAsync(const std::wstring & filepath)
+io::AlmFile & io::AlmFile::Load(const std::wstring &filepath)
 {
-	m_filepath = filepath;
-	return LoadAsync();
+	if (m_pathIndex < 0)
+	{
+		m_pathIndex = s_filepath.size();
+		s_filepath.push_back(filepath);
+		return Load();
+	}
+	s_filepath[m_pathIndex] = filepath;
+	return Load();
 }
 
-io::AlmFile & io::AlmFile::LoadAsync(const std::string & filepath)
+io::AlmFile & io::AlmFile::Load(const std::string &filepath)
 {
-	return LoadAsync(StrToWStr(filepath));
-}
-
-const uint8_t * io::AlmFile::GetContentAsync()
-{
-	if (m_filepath.size() <= 0) return nullptr;
-	if (!m_data) m_future.get();
-	return m_data;
+	return Load(StrToWStr(filepath));
 }
 
 void io::AlmFile::Write(const uint8_t * data, uint32_t size)
@@ -141,21 +127,16 @@ void io::AlmFile::Save()
 	}
 }
 
-void io::AlmFile::SaveAsync()
-{
-	std::async(std::launch::async, [this]() { Save(); });
-}
-
 std::vector<uint8_t> io::AlmFile::asBin() const
 {
 	std::vector<uint8_t> ret;
 	ret.assign(m_data, m_data + m_size);
-	return ret;
+	return std::move(ret);
 }
 
 std::string io::AlmFile::asString() const
 {
-	return std::string((char*)m_data);
+	return std::move(std::string((char*)m_data));
 }
 
 std::wstring io::AlmFile::StrToWStr(const std::string & source)

@@ -54,6 +54,7 @@ public:
 	virtual ePoligonCullMode	GetPoligonCullMode() const = 0;
 	virtual void				GetPoligonCullMode(ePoligonCullMode mode) = 0;
 
+	virtual void				SetShader(const std::string &shaderpath) = 0;
 	virtual void				SetShader(const std::string &shaderpath, eShaderType type) = 0;
 
 	virtual void				Bind() = 0;

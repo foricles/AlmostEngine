@@ -23,6 +23,7 @@ namespace kmu
 
 		 float dot(const vec4 &vec)const;
 		 float magnitude()const;
+		 float sqrMagnitude()const;
 		 vec4 &normalize();
 		 vec4 normalized()const;
 		 std::string toString()const;

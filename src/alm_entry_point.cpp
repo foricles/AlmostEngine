@@ -1,6 +1,7 @@
 #include "alm_entry_point.hpp"
 #include "almCore/almSceneSystem/alm_scenemanager.hpp"
 #include "almCore/almEntitySystem/alm_entitymgr.hpp"
+#include "almCore/almRender/openglrender/alm_glrender.hpp"
 #include "almCore/almRender/vulkanrender/alm_vulkanrender.hpp"
 #include "almCore/almUser/almWindow/alm_pcwindow.hpp"
 
@@ -30,7 +31,7 @@ void AlmEngineEntryPoint::InitializeEngineComponents()
 {
 	m_engine.SetSceneManager<AlmSceneManager>();
 	m_engine.SetEntityManager<AlmEntityManager>();
-	m_engine.SetRenderSystem<AlmVulkanRender>();
+	m_engine.SetRenderSystem<AlmGLRender>();
 	m_engine.SetMainWindow<AlmWindowPC>();
 }
 

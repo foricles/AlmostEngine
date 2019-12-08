@@ -30,11 +30,13 @@ kmu::vec4::~vec4()
 }
  float kmu::vec4::magnitude()const
 {
-	return sqrtf(x*x
-		+ y*y
-		+ z*z
-		+ w*w);
+	return sqrtf(sqrMagnitude());
 }
+ float kmu::vec4::sqrMagnitude() const
+ {
+	 return (x*x + y*y + z*z + w*w);
+ }
+
  kmu::vec4 & kmu::vec4::normalize()
 {
 	float l(this->magnitude());

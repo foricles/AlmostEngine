@@ -1,24 +1,34 @@
-#ifndef _ALM_RENDER_MATERIAL_HPP_
-#define _ALM_RENDER_MATERIAL_HPP_
+#ifndef _ALM_RENDER_MATERIAL_OPENGL_HPP_
+#define _ALM_RENDER_MATERIAL_OPENGL_HPP_
 
 #include "../src/almCore/almRender/interface/alm_imaterial.hpp"
-#include <vector>
-#include <memory>
+#include <set>
+#include <utility>
 
 namespace alme
 {
-struct sVkMatVaribles;
-struct sAlmVulkanContext;
-class AlmVkMaterial : public IAlmRenderMaterial
+
+struct sAlmUniformCache
+{
+	int32_t location;
+	std::string name;
+
+	sAlmUniformCache(const std::string &ident) : location(-1), name(ident) {}
+	bool operator < (const sAlmUniformCache &rhv) const { return name < rhv.name; };
+};
+
+
+
+
+class AlmGLMaterial : public IAlmRenderMaterial
 {
 public:
-	AlmVkMaterial() = delete;
-	AlmVkMaterial(const AlmVkMaterial &rhv) = delete;
-	AlmVkMaterial & operator=(const AlmVkMaterial &rhv) = delete;
+	AlmGLMaterial() = delete;
+	AlmGLMaterial(const AlmGLMaterial &rhv) = delete;
+	AlmGLMaterial & operator=(const AlmGLMaterial &rhv) = delete;
 
 public:
-	AlmVkMaterial(sAlmVulkanContext *context);
-	~AlmVkMaterial();
+	~AlmGLMaterial();
 
 	uint32_t GetId() const override;
 	std::string GetName() const override;
@@ -42,19 +52,23 @@ public:
 	ePoligonCullMode GetPoligonCullMode() const override;
 	void GetPoligonCullMode(ePoligonCullMode mode) override;
 
-	void SetShader(const std::string &shaderpath) override {};
+	void SetShader(const std::string &shaderpath) override;
 	void SetShader(const std::string &shaderpath, eShaderType type) override;
 
 	void Bind() override;
 	void Unbind() override;
 
 private:
-	std::unique_ptr<sVkMatVaribles>		m_var;
-	sAlmVulkanContext				   *m_context;
+	int32_t GetUniformLocation(const std::string &name);
+	std::string LoadShader(const std::string &path);
+	void CompileShader(const std::string &body, eShaderType type);
+
+private:
+	std::set<sAlmUniformCache>			m_uniforms;
 	kmu::vec4							m_scissorBox;
 	ePoligonCullMode					m_cullMode;
 	ePoligonDrawMode					m_poligonMode;
 };
 
 }
-#endif // !_ALM_RENDER_MATERIAL_HPP_
+#endif // !_ALM_RENDER_MATERIAL_OPENGL_HPP_

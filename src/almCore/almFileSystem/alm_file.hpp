@@ -1,8 +1,8 @@
 #ifndef _ALM_FILE_HPP_
 #define _ALM_FILE_HPP_
 
-#include "alm_flsystem.hpp"
-#include <future>
+#include <string>
+#include <vector>
 
 namespace alme
 {
@@ -31,18 +31,12 @@ public:
 	std::wstring GetFullPath() const;
 	const std::wstring & GetPath() const;
 
-	const uint8_t * Load();
-	const uint8_t * Load(const std::string &filepath);
-	const uint8_t * Load(const std::wstring &filepath);
-
-	AlmFile & LoadAsync();
-	AlmFile & LoadAsync(const std::string &filepath);
-	AlmFile & LoadAsync(const std::wstring &filepath);
-	const uint8_t *GetContentAsync();
+	AlmFile & Load();
+	AlmFile & Load(const std::string &filepath);
+	AlmFile & Load(const std::wstring &filepath);
 
 	void Write(const uint8_t *data, uint32_t size);
 	void Save();
-	void SaveAsync();
 
 	std::vector<uint8_t> asBin() const;
 	std::string asString() const;
@@ -53,8 +47,9 @@ public:
 private:
 	uint8_t *m_data;
 	uint32_t m_size;
-	std::wstring m_filepath;
-	std::future<void> m_future;
+	int32_t  m_pathIndex;
+
+	static std::vector<std::wstring> s_filepath;
 };
 
 }

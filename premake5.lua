@@ -33,7 +33,9 @@ filter "configurations:Release"
 		
 		links
 		{
-			"vulkan-1"
+			"glew32s",
+			"opengl32",
+			"vulkan-1",
 		}
 		
 		includedirs --directories
@@ -48,7 +50,7 @@ filter "configurations:Release"
 		}
 		
 		filter "system:windows"
-			cppdialect "C++11"
+			cppdialect "C++14"
 			staticruntime "On"
 			systemversion "latest"
 			
@@ -92,7 +94,7 @@ filter "configurations:Release"
 		}
 		
 		filter "system:windows"
-			cppdialect "C++11"
+			cppdialect "C++14"
 			staticruntime "On"
 			systemversion "latest"
 			

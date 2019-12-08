@@ -19,8 +19,8 @@ AlmostEngine::AlmostEngine()
 
 AlmostEngine::~AlmostEngine()
 {
-	if (m_sceneManager) delete m_sceneManager;
 	if (m_entityManager) delete m_entityManager;
+	if (m_sceneManager) delete m_sceneManager;
 	if (m_renderSystem) delete m_renderSystem;
 	if (m_mainWindow) delete m_mainWindow;
 }
@@ -45,9 +45,13 @@ void AlmostEngine::RunLoop()
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(16));
 		m_mainWindow->Update();
+
 		m_renderSystem->BeginRender();
+
 		m_sceneManager->OnUpdate();
+
 		m_renderSystem->FinishRender();
+
 		m_sceneManager->PostUpdate();
 	}
 }

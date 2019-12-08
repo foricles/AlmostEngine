@@ -156,7 +156,7 @@ void AlmVkMaterial::SetShader(const std::string & shaderpath, eShaderType type)
 	m_var->shaderTypes.push_back(type);
 	m_var->shaderStage.push_back(shaderStageInfo);
 
-	m_context->device.destroyShaderModule(shaderModule.value);
+	//m_context->device.destroyShaderModule(shaderModule.value);
 }
 
 void AlmVkMaterial::Bind()
@@ -251,6 +251,9 @@ void AlmVkMaterial::Bind()
 	pipelineInfo.setBasePipelineIndex(-1);
 
 	m_var->graphicsPipeline = m_context->device.createGraphicsPipeline(vk::PipelineCache(), pipelineInfo).value;
+
+	for (uint32_t i(0); i < m_context->swapChainImages.size(); ++i)
+		m_context->commandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_var->graphicsPipeline);
 }
 
 void AlmVkMaterial::Unbind()

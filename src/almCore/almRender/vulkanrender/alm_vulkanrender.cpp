@@ -29,8 +29,6 @@
 
 using namespace alme;
 
-static IAlmRenderMaterial *glob_material;
-
 AlmVulkanRender::AlmVulkanRender()
 {
 	m_variables = new sAlmVulkanContext();
@@ -65,10 +63,6 @@ void AlmVulkanRender::InitRenderAPIInstance()
 	CreateFramebuffers();
 	CreateCommandPool();
 	CreateSynchronization();
-
-	glob_material = this->CreateMaterial();
-	glob_material->SetShader("sha\\v.spv", eShaderType::eVertex);
-	glob_material->SetShader("sha\\f.spv", eShaderType::eFragment);
 }
 
 void AlmVulkanRender::OnWindowResize(unsigned int width, unsigned int height)
@@ -107,13 +101,18 @@ void AlmVulkanRender::BeginRender()
 	{
 		m_variables->commandBuffers[i].begin(beginInfo);
 		m_variables->commandBuffers[i].clearColorImage(m_variables->swapChainImages[i], vk::ImageLayout::eTransferDstOptimal, &clearColor, 1, &imageRange);
-		m_variables->commandBuffers[i].end();
 	}
 
 }
 
 void AlmVulkanRender::FinishRender()
 {
+	for (uint32_t i(0); i < m_variables->swapChainImages.size(); ++i)
+	{
+		m_variables->commandBuffers[i].draw(3, 1, 0, 0);
+		m_variables->commandBuffers[i].end();
+	}
+	
 	vk::Semaphore &image = m_variables->imageAvailableSemaphore[m_variables->currentFrame];
 	vk::Semaphore &render = m_variables->renderFinishedSemaphore[m_variables->currentFrame];
 	uint32_t imageIndex;
@@ -331,10 +330,29 @@ void AlmVulkanRender::InitLogicalDevice()
 
 	vk::PhysicalDeviceFeatures deviceFeatures;
 
-	const std::vector<const char*> deviceExtensions = 
+	std::vector<const char*> deviceExtensions = 
 	{
+		VK_NV_GLSL_SHADER_EXTENSION_NAME,
 		VK_KHR_SWAPCHAIN_EXTENSION_NAME
 	};
+
+	auto instaledExt = m_variables->physicalDevice.enumerateDeviceExtensionProperties().value;
+
+	auto ext = deviceExtensions.begin();
+	while (ext != deviceExtensions.end())
+	{
+		auto cmp = [ext](const vk::ExtensionProperties &prop) ->bool { return std::strcmp(prop.extensionName, (*ext)) == 0; };
+		auto fnd = std::find_if(instaledExt.begin(), instaledExt.end(), cmp);
+		if (fnd == instaledExt.end())
+		{
+			ALM_LOG_WARNING("Extencion", (*ext), "not supported and will be removed");
+			ext = deviceExtensions.erase(ext);
+		}
+		else
+		{
+			++ext;
+		}
+	}
 
 	vk::DeviceCreateInfo deviceInfo;
 	deviceInfo.setQueueCreateInfoCount(1);

@@ -53,6 +53,7 @@ public:
 
 		entity2->GetTransform().SetPosition(10, 20, 30);
 		entity2->GetTransform().SetScale(10, -3, 1);
+		entity2->GetTransform().SetRotation(alme::kmu::quaternion::euler(10, 0, 1, 1));
 
 		std::cout << entity2->GetTransform().GetModelMatrix().toString() << std::endl;
 		std::cout << entity1->GetTransform().GetModelMatrix().toString() << std::endl;

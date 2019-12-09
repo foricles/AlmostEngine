@@ -24,6 +24,8 @@ namespace kmu
 	mat4 Orthographic(int left, int right, int top, int bottom, int near, int far);
 
 	quaternion Quaternion(const kmu::mat4 &mtx);
+
+	void CalculateModelMatrix(kmu::mat4 & result, const kmu::vec3 &pos, const kmu::vec3 &scl, const kmu::quaternion &rot);
 }
 
 }

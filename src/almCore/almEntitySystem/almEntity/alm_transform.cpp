@@ -1,5 +1,6 @@
 #include "alm_transform.hpp"
 #include "alm_entity.hpp"
+#include "../src/almCore/alm_log.hpp"
 #include <algorithm>
 
 using namespace alme;
@@ -191,11 +192,7 @@ void AlmTransform::UpdateModelMatrix(AlmTransform *head)
 	{
 		head->m_recalModelMatrix = false;
 
-		head->m_rotation.normalize();
-		kmu::mat4 rtm(kmu::Rotation(head->m_rotation));
-		kmu::mat4 slm(kmu::Scaling(head->m_scale.x, head->m_scale.y, head->m_scale.z));
-		kmu::mat4 trm(kmu::Translation(head->m_position.x, head->m_position.y, head->m_position.z));
-		head->m_modelMatrix = (trm * (rtm * slm));
+		kmu::CalculateModelMatrix(head->m_modelMatrix, head->m_position, head->m_scale, head->m_rotation);
 
 		if (head->m_parent)
 			head->m_modelMatrix = head->m_modelMatrix * head->m_parent->m_modelMatrix;

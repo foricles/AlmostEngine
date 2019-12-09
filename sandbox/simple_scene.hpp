@@ -10,6 +10,7 @@
 #include <almCore/almMath/factorial.hpp>
 #include <almCore/almRender/alm_camera.hpp>
 #include <almCore/almFileSystem/alm_flsystem.hpp>
+#include <almCore/almRender/openglrender/glmaterial/alm_glmaterial.hpp>
 
 class Some : public alme::AlmEventHandler
 {

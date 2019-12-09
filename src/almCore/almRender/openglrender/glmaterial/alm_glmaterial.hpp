@@ -3,6 +3,7 @@
 
 #include "../src/almCore/almRender/interface/alm_imaterial.hpp"
 #include <set>
+#include <vector>
 #include <utility>
 
 namespace alme
@@ -61,13 +62,17 @@ public:
 private:
 	int32_t GetUniformLocation(const std::string &name);
 	std::string LoadShader(const std::string &path);
-	void CompileShader(const std::string &body, eShaderType type);
+
+	void ParseShaders(std::vector<std::pair<std::string, eShaderType>> &parsed, const std::string &body);
+	void CompileShader(std::vector<uint32_t> &compiled, const std::vector<std::pair<std::string, eShaderType>> &parsed);
+	void LinkShadersIntoProgram(std::vector<uint32_t> &compiled);
 
 private:
 	std::set<sAlmUniformCache>			m_uniforms;
 	kmu::vec4							m_scissorBox;
 	ePoligonCullMode					m_cullMode;
 	ePoligonDrawMode					m_poligonMode;
+	uint32_t							m_ProgramId = 0;
 };
 
 }

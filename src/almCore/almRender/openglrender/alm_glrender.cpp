@@ -56,6 +56,8 @@ void AlmGLRender::InitRenderAPIInstance()
 	wglMakeCurrent(hDC, hRC);
 
 #endif // ALM_OS_WINDOWS
+
+	glewInit();
 }
 
 

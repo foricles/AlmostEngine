@@ -41,6 +41,20 @@ AlmVulkanRender::~AlmVulkanRender()
 	delete m_variables;
 }
 
+uint32_t AlmVulkanRender::GetTotalVideoMemmory() const
+{
+	return m_variables->physicalDevice.getProperties().limits.maxMemoryAllocationCount;
+};
+
+uint32_t AlmVulkanRender::GetAvailableVideoMemmory() const
+{
+	return 0;
+};
+
+std::string	AlmVulkanRender::GetGpuVendorName() const
+{
+	return m_variables->physicalDevice.getProperties().deviceName;
+}
 
 void AlmVulkanRender::InitRenderAPIInstance()
 {

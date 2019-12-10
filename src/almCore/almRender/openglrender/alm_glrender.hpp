@@ -16,6 +16,10 @@ public:
 	void BeginRender() override;
 	void FinishRender() override;
 
+	uint32_t GetTotalVideoMemmory() const override;
+	uint32_t GetAvailableVideoMemmory() const override;
+	std::string GetGpuVendorName() const override;
+
 	IAlmRenderMaterial *CreateMaterial() override;
 
 };

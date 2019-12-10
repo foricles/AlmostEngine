@@ -9,15 +9,19 @@ namespace alme
 class IAlmRenderSystem : public AlmEventHandler
 {
 public:
-	virtual ~IAlmRenderSystem() {};
+	virtual						~IAlmRenderSystem() {};
 
-	virtual void InitRenderAPIInstance() = 0;
-	virtual void OnWindowResize(unsigned int width, unsigned int height) = 0;
+	virtual void				InitRenderAPIInstance() = 0;
+	virtual void				OnWindowResize(unsigned int width, unsigned int height) = 0;
 
-	virtual void BeginRender() = 0;
-	virtual void FinishRender() = 0;
+	virtual void				BeginRender() = 0;
+	virtual void				FinishRender() = 0;
 
-	virtual IAlmRenderMaterial *CreateMaterial() = 0;
+	virtual std::string			GetGpuVendorName() const = 0;
+	virtual uint32_t			GetTotalVideoMemmory() const = 0;
+	virtual uint32_t			GetAvailableVideoMemmory() const = 0;
+
+	virtual IAlmRenderMaterial  *CreateMaterial() = 0;
 };
 
 }

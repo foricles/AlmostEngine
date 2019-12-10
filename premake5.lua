@@ -36,6 +36,7 @@ filter "configurations:Release"
 			"glew32s",
 			"opengl32",
 			"vulkan-1",
+			"assimp-vc141-mt",
 		}
 		
 		includedirs --directories

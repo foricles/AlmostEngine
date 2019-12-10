@@ -1,4 +1,5 @@
 #include "alm_engine.hpp"
+#include "almCore/alm_log.hpp"
 #include "almCore/alm_platform.hpp"
 #include "almCore/almEntitySystem/alm_imgr.hpp"
 #include "almCore/almSceneSystem/alm_scenemanager.hpp"
@@ -36,6 +37,10 @@ void AlmostEngine::InititalizeSubsystems()
 	m_mainWindow->canvas_size_callback.Add<IAlmRenderSystem>(m_renderSystem, &IAlmRenderSystem::OnWindowResize);
 
 	m_renderSystem->InitRenderAPIInstance();
+
+	ALM_LOG_INFO("GPU Vendor", m_renderSystem->GetGpuVendorName());
+	ALM_LOG_INFO("Total gpu memmory", m_renderSystem->GetTotalVideoMemmory(), "kb");
+	ALM_LOG_INFO("Availbe gpu memmory", m_renderSystem->GetAvailableVideoMemmory(), "kb");
 }
 
 void AlmostEngine::RunLoop()

@@ -79,6 +79,30 @@ void AlmGLRender::FinishRender()
 #endif // ALM_OS_WINDOWS
 }
 
+uint32_t AlmGLRender::GetTotalVideoMemmory() const
+{
+	GLint mem = 0;
+	glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &mem);
+	return mem;
+};
+
+uint32_t AlmGLRender::GetAvailableVideoMemmory() const
+{
+	GLint mem = 0;
+	glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &mem);
+
+	if (mem == 0)
+		glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, &mem);
+
+	return mem;
+};
+
+std::string	AlmGLRender::GetGpuVendorName() const
+{
+	GLubyte* vendor = const_cast<GLubyte*>(glGetString(GL_RENDERER));
+	return reinterpret_cast<char*>(vendor);
+}
+
 IAlmRenderMaterial * AlmGLRender::CreateMaterial()
 {
 	return nullptr;

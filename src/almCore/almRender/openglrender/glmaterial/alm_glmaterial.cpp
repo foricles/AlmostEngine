@@ -150,9 +150,9 @@ void AlmGLMaterial::Bind()
 
 	if (isScissors == GL_TRUE)
 	{
-		uint32_t w = static_cast<float>(m_scissorBox.z - m_scissorBox.x);
-		uint32_t h = static_cast<float>(m_scissorBox.w - m_scissorBox.y);
-		glScissor(m_scissorBox.x, m_scissorBox.y, w, h);
+		uint32_t w = static_cast<uint32_t>(m_scissorBox.z - m_scissorBox.x);
+		uint32_t h = static_cast<uint32_t>(m_scissorBox.w - m_scissorBox.y);
+		glScissor(static_cast<uint32_t>(m_scissorBox.x), static_cast<uint32_t>(m_scissorBox.y), w, h);
 	}
 
 	glUseProgram(m_ProgramId);

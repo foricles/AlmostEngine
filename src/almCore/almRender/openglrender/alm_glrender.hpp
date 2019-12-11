@@ -8,6 +8,7 @@ namespace alme
 class AlmGLRender : public IAlmRenderSystem
 {
 public:
+	AlmGLRender(AlmostEngine *engine);
 	~AlmGLRender();
 
 	void InitRenderAPIInstance() override;

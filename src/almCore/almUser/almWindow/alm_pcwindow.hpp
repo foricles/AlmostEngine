@@ -9,7 +9,7 @@ namespace alme
 class AlmWindowPC : public IAlmWindow
 {
 public:
-	AlmWindowPC();
+	AlmWindowPC(AlmostEngine *engine);
 	~AlmWindowPC();
 
 	void			Hide() override;

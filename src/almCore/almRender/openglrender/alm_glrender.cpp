@@ -12,6 +12,11 @@ HGLRC hRC;				/* opengl context */
 
 #endif // ALM_OS_WINDOWS
 
+AlmGLRender::AlmGLRender(AlmostEngine * engine)
+	: IAlmRenderSystem(engine)
+{
+}
+
 AlmGLRender::~AlmGLRender()
 {
 #ifdef ALM_OS_WINDOWS

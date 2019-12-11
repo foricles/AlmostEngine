@@ -7,8 +7,8 @@ using namespace alme;
 
 
 
-AlmTransform::AlmTransform(AlmEntity *owner)
-	: m_entity(owner)
+AlmTransform::AlmTransform(IAlmEntity *owner)
+	: m_entity(dynamic_cast<AlmEntity*>(owner))
 	, m_parent(nullptr)
 	, m_scale(1, 1, 1)
 	, m_position(0, 0, 0)
@@ -25,61 +25,61 @@ AlmTransform::~AlmTransform()
 }
 
 
-AlmEntity *AlmTransform::GetEntity()
+IAlmEntity *AlmTransform::GetEntity()
 {
 	return m_entity;
 }
 
-const AlmEntity *AlmTransform::GetEntity() const
+const IAlmEntity *AlmTransform::GetEntity() const
 {
 	return m_entity;
 }
 
 
-bool AlmTransform::HasChild(const AlmTransform * candidat) const
+bool AlmTransform::HasChild(const IAlmTransform * candidat) const
 {
 	return (std::find(m_children.begin(), m_children.end(), candidat) != m_children.end());
 }
 
-void AlmTransform::SetParent(AlmTransform * parent)
+void AlmTransform::SetParent(IAlmTransform * parent)
 {
 	if (!parent) return;
 	if (m_parent == parent) return;
 	if (m_parent) RemoveChild(this);
-	m_parent = parent;
+	m_parent = dynamic_cast<AlmTransform*>(parent);
 	parent->AddChild(this);
 
 	this->m_recalModelMatrix = true;
 }
 
-void alme::AlmTransform::SetParent(const AlmTransform & parent)
+void alme::AlmTransform::SetParent(const IAlmTransform & parent)
 {
-	SetParent(const_cast<AlmTransform*>(&parent));
+	SetParent(const_cast<IAlmTransform*>(&parent));
 }
 
-void AlmTransform::AddChild(AlmTransform * child)
+void AlmTransform::AddChild(IAlmTransform * child)
 {
 	if (HasChild(child)) return;
-	m_children.push_back(child);
+	m_children.push_back(dynamic_cast<AlmTransform*>(child));
 	child->SetParent(this);
 
-	child->m_recalModelMatrix = true;
+	dynamic_cast<AlmTransform*>(child)->m_recalModelMatrix = true;
 }
 
-void alme::AlmTransform::AddChild(const AlmTransform & child)
+void alme::AlmTransform::AddChild(const IAlmTransform & child)
 {
-	AddChild(const_cast<AlmTransform*>(&child));
+	AddChild(const_cast<IAlmTransform*>(&child));
 }
 
-void AlmTransform::RemoveChild(AlmTransform *child)
+void AlmTransform::RemoveChild(IAlmTransform *child)
 {
 	auto found = std::find(m_children.begin(), m_children.end(), child);
 	if (found != m_children.end()) m_children.erase(found);
 }
 
-void alme::AlmTransform::RemoveChild(const AlmTransform & child)
+void alme::AlmTransform::RemoveChild(const IAlmTransform & child)
 {
-	RemoveChild(const_cast<AlmTransform*>(&child));
+	RemoveChild(const_cast<IAlmTransform*>(&child));
 }
 
 void AlmTransform::RemoveAllChildren()
@@ -184,8 +184,9 @@ const kmu::mat4 & alme::AlmTransform::GetModelMatrix()
 	return m_modelMatrix;
 }
 
-void AlmTransform::UpdateModelMatrix(AlmTransform *head)
+void AlmTransform::UpdateModelMatrix(IAlmTransform *ihead)
 {
+	AlmTransform *head = dynamic_cast<AlmTransform*>(ihead);
 	while (head->m_parent && head->m_parent->m_recalModelMatrix) head = head->m_parent;
 
 	if (head->m_recalModelMatrix)

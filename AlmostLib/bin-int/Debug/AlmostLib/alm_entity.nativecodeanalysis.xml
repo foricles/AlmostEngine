@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\projects\cpp\almostengine\src\almcore\almentitysystem\interface</FILEPATH>
+      <FILENAME>alm_ientity.hpp</FILENAME>
+      <LINE>18</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>26495</DEFECTCODE>
+    <DESCRIPTION>Variable 'alme::IAlmEntity::m_hasUpdate' is uninitialized. Always initialize a member variable (type.6).</DESCRIPTION>
+    <FUNCTION>alme::IAlmEntity::{ctor}</FUNCTION>
+    <DECORATED>??0IAlmEntity@alme@@QAE@XZ</DECORATED>
+    <FUNCLINE>18</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

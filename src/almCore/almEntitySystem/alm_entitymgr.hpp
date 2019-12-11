@@ -1,8 +1,8 @@
 #ifndef _ALM_ENTITY_MANAGER_HPP_
 #define _ALM_ENTITY_MANAGER_HPP_
 
-#include "alm_imgr.hpp"
 #include "alm_bintree.hpp"
+#include "interface/alm_imgr.hpp"
 
 namespace alme
 {
@@ -10,8 +10,8 @@ namespace alme
 class AlmEntityManager : public IAlmEntityManager, protected RBTree<IAlmEntity*>
 {
 public:
-	AlmEntityManager();
-	virtual ~AlmEntityManager();
+	AlmEntityManager(AlmostEngine *engine);
+	~AlmEntityManager();
 
 	IAlmEntity *CreateEntity(const std::string &name) override;
 	void ReleaseEntity(IAlmEntity *entity) override;

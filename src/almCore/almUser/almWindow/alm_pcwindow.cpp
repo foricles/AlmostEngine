@@ -62,7 +62,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 //////////////////////////
 
-AlmWindowPC::AlmWindowPC()
+AlmWindowPC::AlmWindowPC(AlmostEngine *engine)
+	: IAlmWindow(engine)
 {
 	globMainPc = this;
 	CreateMainWindow();

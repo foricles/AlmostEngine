@@ -1,10 +1,12 @@
 #include "alm_scenemanager.hpp"
 #include "../almSceneSystem/alm_iscene.hpp"
+#include "../src/alm_engine.hpp"
 
 #include <algorithm>
 
-alme::AlmSceneManager::AlmSceneManager()
-	: m_activeScene(nullptr)
+alme::AlmSceneManager::AlmSceneManager(AlmostEngine *engine)
+	: AlmEngineSystem(engine)
+	, m_activeScene(nullptr)
 {
 }
 

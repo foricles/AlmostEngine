@@ -29,7 +29,8 @@
 
 using namespace alme;
 
-AlmVulkanRender::AlmVulkanRender()
+AlmVulkanRender::AlmVulkanRender(AlmostEngine *engine)
+	: IAlmRenderSystem(engine)
 {
 	m_variables = new sAlmVulkanContext();
 	m_variables->currentFrame = 0;

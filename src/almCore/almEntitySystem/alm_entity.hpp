@@ -2,7 +2,8 @@
 #define _ALM_ENTITY_HPP_
 
 #include "alm_transform.hpp"
-#include "alm_ientity.hpp"
+#include "interface/alm_ientity.hpp"
+#include "interface/alm_itransform.hpp"
 
 namespace alme
 {
@@ -18,8 +19,8 @@ public:
 
 	const uint32_t			GetId() const override;
 	const std::string &		GetName() const override;
-	AlmTransform &			GetTransform();
-	const AlmTransform &	GetTransform()const;
+	IAlmTransform *			GetTransform() override;
+	const IAlmTransform *	GetTransform() const override;
 
 public:
 	bool operator < (const AlmEntity &rhv) const;

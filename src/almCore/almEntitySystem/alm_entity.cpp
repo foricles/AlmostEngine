@@ -13,22 +13,22 @@ AlmEntity::~AlmEntity()
 {
 }
 
-AlmTransform & alme::AlmEntity::GetTransform()
+IAlmTransform * AlmEntity::GetTransform()
 {
-	return m_transform;
+	return &m_transform;
 }
 
-const AlmTransform & alme::AlmEntity::GetTransform() const
+const IAlmTransform * AlmEntity::GetTransform() const
 {
-	return m_transform;
+	return &m_transform;
 }
 
-bool alme::AlmEntity::operator<(const AlmEntity & rhv) const
+bool AlmEntity::operator<(const AlmEntity & rhv) const
 {
 	return GetId() < rhv.GetId();
 }
 
-bool alme::AlmEntity::operator==(const AlmEntity & rhv) const
+bool AlmEntity::operator==(const AlmEntity & rhv) const
 {
 	return GetId() == rhv.GetId();
 }

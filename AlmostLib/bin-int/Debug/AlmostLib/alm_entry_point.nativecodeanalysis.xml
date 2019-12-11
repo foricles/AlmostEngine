@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\projects\cpp\almostengine\src</FILEPATH>
+      <FILENAME>alm_entry_point.hpp</FILENAME>
+      <LINE>16</LINE>
+      <COLUMN>0</COLUMN>
+    </SFA>
+    <DEFECTCODE>26495</DEFECTCODE>
+    <DESCRIPTION>Variable 'alme::AlmApplicationDescriptor::m_applicationVersion' is uninitialized. Always initialize a member variable (type.6).</DESCRIPTION>
+    <FUNCTION>alme::AlmApplicationDescriptor::{ctor}</FUNCTION>
+    <DECORATED>??0AlmApplicationDescriptor@alme@@QAE@XZ</DECORATED>
+    <FUNCLINE>16</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

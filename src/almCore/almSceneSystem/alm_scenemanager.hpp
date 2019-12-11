@@ -4,23 +4,22 @@
 #include <vector>
 #include <string>
 #include <functional>
+#include "../src/almCore/alm_engsystem.hpp"
 
 namespace alme
 {
 class IAlmScene;
-
-using CreateCallback = std::pair<std::string, std::function<IAlmScene*()>>;
-
-class AlmSceneManager
+class AlmSceneManager : protected AlmEngineSystem
 {
+using CreateCallback = std::pair<std::string, std::function<IAlmScene*()>>;
 public:
-	AlmSceneManager();
-	virtual ~AlmSceneManager();
+	AlmSceneManager(AlmostEngine *engine);
+	~AlmSceneManager();
 
-	virtual void RunScene(const std::string &name);
-	virtual void RunScene(uint32_t id);
 	virtual void OnUpdate();
 	virtual void PostUpdate();
+	virtual void RunScene(uint32_t id);
+	virtual void RunScene(const std::string &name);
 
 private:
 	IAlmScene *m_activeScene;

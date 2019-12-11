@@ -10,7 +10,7 @@ struct sAlmVulkanContext;
 class AlmVulkanRender : public IAlmRenderSystem
 {
 public:
-	AlmVulkanRender();
+	AlmVulkanRender(AlmostEngine *engine);
 	~AlmVulkanRender();
 
 	void InitRenderAPIInstance() override;

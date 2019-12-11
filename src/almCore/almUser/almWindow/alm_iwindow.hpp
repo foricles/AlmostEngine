@@ -1,12 +1,13 @@
 #ifndef _ALM_WINDOW_INTERFACE_HPP_
 #define _ALM_WINDOW_INTERFACE_HPP_
 
+#include "../src/almCore/alm_engsystem.hpp"
 #include "../src/almCore/almEvents/alm_delegat.hpp"
 
 namespace alme
 {
 
-class IAlmWindow : public AlmEventHandler
+class IAlmWindow : public AlmEventHandler, protected AlmEngineSystem
 {
 public:
 	enum WindowMode
@@ -16,8 +17,8 @@ public:
 	};
 
 public:
-	IAlmWindow() {};
-	virtual ~IAlmWindow() {};
+	IAlmWindow(AlmostEngine *engine) 
+		: AlmEngineSystem(engine) {}
 
 	virtual void			Hide() = 0;
 	virtual void			Show() = 0;

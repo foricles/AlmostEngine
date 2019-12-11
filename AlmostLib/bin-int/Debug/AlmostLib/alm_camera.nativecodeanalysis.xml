@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\projects\cpp\almostengine\src\almcore\almrender</FILEPATH>
+      <FILENAME>alm_camera.cpp</FILENAME>
+      <LINE>10</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>26495</DEFECTCODE>
+    <DESCRIPTION>Variable 'alme::AlmCamera::m_projection' is uninitialized. Always initialize a member variable (type.6).</DESCRIPTION>
+    <FUNCTION>alme::AlmCamera::{ctor}</FUNCTION>
+    <DECORATED>??0AlmCamera@alme@@QAE@$$QAV01@@Z</DECORATED>
+    <FUNCLINE>10</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\projects\cpp\almostengine\src\almcore\almrender</FILEPATH>
+      <FILENAME>alm_camera.cpp</FILENAME>
+      <LINE>10</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>26439</DEFECTCODE>
+    <DESCRIPTION>This kind of function may not throw. Declare it 'noexcept' (f.6).</DESCRIPTION>
+    <FUNCTION>alme::AlmCamera::{ctor}</FUNCTION>
+    <DECORATED>??0AlmCamera@alme@@QAE@$$QAV01@@Z</DECORATED>
+    <FUNCLINE>10</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>c:\projects\cpp\almostengine\src\almcore\almrender</FILEPATH>
+      <FILENAME>alm_camera.cpp</FILENAME>
+      <LINE>18</LINE>
+      <COLUMN>29</COLUMN>
+    </SFA>
+    <DEFECTCODE>26439</DEFECTCODE>
+    <DESCRIPTION>This kind of function may not throw. Declare it 'noexcept' (f.6).</DESCRIPTION>
+    <FUNCTION>alme::AlmCamera::=</FUNCTION>
+    <DECORATED>??4AlmCamera@alme@@QAEAAV01@$$QAV01@@Z</DECORATED>
+    <FUNCLINE>18</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

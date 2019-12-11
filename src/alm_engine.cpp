@@ -1,8 +1,8 @@
 #include "alm_engine.hpp"
 #include "almCore/alm_log.hpp"
 #include "almCore/alm_platform.hpp"
-#include "almCore/almEntitySystem/alm_imgr.hpp"
 #include "almCore/almSceneSystem/alm_scenemanager.hpp"
+#include "almCore/almEntitySystem/interface/alm_imgr.hpp"
 #include "almCore/almRender/interface/alm_irendersys.hpp"
 
 #include <thread>
@@ -11,10 +11,14 @@ using namespace alme;
 
 AlmostEngine::AlmostEngine()
 	: m_quit(false)
-	, m_entityManager(nullptr)
-	, m_renderSystem(nullptr)
+	, m_mainWindow(nullptr)
 	, m_sceneManager(nullptr)
+	, m_renderSystem(nullptr)
+	, m_entityManager(nullptr)
 	, m_mainWindowInitializer(nullptr)
+	, m_sceneManagerInitializer(nullptr)
+	, m_renderSystemInitializer(nullptr)
+	, m_entityManagerInitializer(nullptr)
 {
 }
 
@@ -24,6 +28,26 @@ AlmostEngine::~AlmostEngine()
 	if (m_sceneManager) delete m_sceneManager;
 	if (m_renderSystem) delete m_renderSystem;
 	if (m_mainWindow) delete m_mainWindow;
+}
+
+const IAlmWindow & AlmostEngine::GetMainWindow() const
+{
+	return *m_mainWindow;
+}
+
+const AlmSceneManager & AlmostEngine::GetSceneManager() const
+{
+	return *m_sceneManager;
+}
+
+const IAlmRenderSystem & AlmostEngine::GetRenderSystem() const
+{
+	return *m_renderSystem;
+}
+
+const IAlmEntityManager & AlmostEngine::GetEntityManager() const
+{
+	return *m_entityManager;
 }
 
 void AlmostEngine::InititalizeSubsystems()
@@ -37,10 +61,6 @@ void AlmostEngine::InititalizeSubsystems()
 	m_mainWindow->canvas_size_callback.Add<IAlmRenderSystem>(m_renderSystem, &IAlmRenderSystem::OnWindowResize);
 
 	m_renderSystem->InitRenderAPIInstance();
-
-	ALM_LOG_INFO("GPU Vendor", m_renderSystem->GetGpuVendorName());
-	ALM_LOG_INFO("Total gpu memmory", m_renderSystem->GetTotalVideoMemmory(), "kb");
-	ALM_LOG_INFO("Availbe gpu memmory", m_renderSystem->GetAvailableVideoMemmory(), "kb");
 }
 
 void AlmostEngine::RunLoop()

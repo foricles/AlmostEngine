@@ -17,44 +17,44 @@ public:
 	AlmostEngine();
 	~AlmostEngine();
 
-private:
-	void InititalizeSubsystems();
-	void RunLoop();
+	const IAlmWindow &					GetMainWindow() const;
+	const AlmSceneManager &				GetSceneManager() const;
+	const IAlmRenderSystem &			GetRenderSystem() const;
+	const IAlmEntityManager &			GetEntityManager() const;
 
 private:
-	AlmSceneManager *m_sceneManager;
-	IAlmRenderSystem *m_renderSystem;
-	IAlmEntityManager *m_entityManager;
+	void								InititalizeSubsystems();
+	void								RunLoop();
+	IAlmWindow							*m_mainWindow;
+	AlmSceneManager						*m_sceneManager;
+	IAlmRenderSystem					*m_renderSystem;
+	IAlmEntityManager					*m_entityManager;
 
-	IAlmWindow *m_mainWindow;
+	std::function<IAlmWindow*()>		 m_mainWindowInitializer;
+	std::function<AlmSceneManager*()>	 m_sceneManagerInitializer;
+	std::function<IAlmRenderSystem*()>	 m_renderSystemInitializer;
+	std::function<IAlmEntityManager*()>  m_entityManagerInitializer;
 
 private:
-	bool m_quit;
+	bool								 m_quit;
 
-	std::function<AlmSceneManager*()> m_sceneManagerInitializer;
-	std::function<IAlmRenderSystem*()> m_renderSystemInitializer;
-	std::function<IAlmEntityManager*()> m_entityManagerInitializer;
-
-	std::function<IAlmWindow*()> m_mainWindowInitializer;
-
-public:
+private:
 	template<class T> inline void SetSceneManager()
 	{
-		m_sceneManagerInitializer = [this]() -> AlmSceneManager* { return new T(); };
+		m_sceneManagerInitializer = [this]() -> AlmSceneManager* { return new T(this); };
 	}
 	template<class T> inline void SetEntityManager()
 	{
-		m_entityManagerInitializer = [this]() -> IAlmEntityManager* { return new T(); };
+		m_entityManagerInitializer = [this]() -> IAlmEntityManager* { return new T(this); };
 	}
 	template<class T> inline void SetRenderSystem()
 	{
-		m_renderSystemInitializer = [this]() -> IAlmRenderSystem* { return new T(); };
+		m_renderSystemInitializer = [this]() -> IAlmRenderSystem* { return new T(this); };
 	}
 	template<class T> inline void SetMainWindow()
 	{
-		m_mainWindowInitializer = [this]() -> IAlmWindow* { return new T(); };
+		m_mainWindowInitializer = [this]() -> IAlmWindow* { return new T(this); };
 	}
-
 };
 }
 

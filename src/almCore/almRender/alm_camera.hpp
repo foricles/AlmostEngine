@@ -2,7 +2,7 @@
 #define _ALM_RENDER_CAMERA_HPP_
 
 #include "../almMath/matrices.hpp"
-#include "../almEntitySystem/almEntity/alm_entity.hpp"
+#include "../src/almCore/almEntitySystem/alm_entity.hpp"
 
 namespace alme
 {

@@ -1,6 +1,6 @@
 #include "alm_entitymgr.hpp"
 #include <xhash>
-#include "../almEntitySystem/almEntity/alm_entity.hpp"
+#include "../src/almCore/almEntitySystem/alm_entity.hpp"
 
 using namespace alme;
 
@@ -11,7 +11,8 @@ inline uint32_t GetHash(const std::string &str)
 }
 
 
-AlmEntityManager::AlmEntityManager()
+AlmEntityManager::AlmEntityManager(AlmostEngine *engine)
+	: IAlmEntityManager(engine)
 {
 }
 

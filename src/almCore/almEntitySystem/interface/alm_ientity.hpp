@@ -3,6 +3,7 @@
 
 namespace alme
 {
+class IAlmTransform;
 class IAlmEntity
 {
 public:
@@ -10,6 +11,8 @@ public:
 
 	virtual const uint32_t			GetId() const = 0;
 	virtual const std::string &		GetName() const = 0;
+	virtual IAlmTransform *			GetTransform() = 0;
+	virtual const IAlmTransform *	GetTransform() const = 0;
 
 	bool m_hasUpdate;
 };

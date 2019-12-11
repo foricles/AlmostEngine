@@ -8,10 +8,10 @@
 
 namespace alme
 {
-class IAlmScene;
+class AlmGameScene;
 class AlmSceneManager : protected AlmEngineSystem
 {
-using CreateCallback = std::pair<std::string, std::function<IAlmScene*()>>;
+using CreateCallback = std::pair<std::string, std::function<AlmGameScene*()>>;
 public:
 	AlmSceneManager(AlmostEngine *engine);
 	~AlmSceneManager();
@@ -22,13 +22,16 @@ public:
 	virtual void RunScene(const std::string &name);
 
 private:
-	IAlmScene *m_activeScene;
+	void RunGameScene(AlmGameScene *scene);
+
+private:
+	AlmGameScene *m_activeScene;
 	std::vector<CreateCallback> m_scenes;
 
 public:
 	template<class Scene> inline void AddScene(const std::string &name)
 	{
-		m_scenes.push_back(CreateCallback(name, []() -> IAlmScene* { return new Scene(); }));
+		m_scenes.push_back(CreateCallback(name, []() -> AlmGameScene* { return new Scene(); }));
 	}
 
 };

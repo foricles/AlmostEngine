@@ -1,5 +1,5 @@
 #include "alm_scenemanager.hpp"
-#include "../almSceneSystem/alm_iscene.hpp"
+#include "../almSceneSystem/alm_scene.hpp"
 #include "../src/alm_engine.hpp"
 
 #include <algorithm>
@@ -33,8 +33,7 @@ void alme::AlmSceneManager::RunScene(const std::string & name)
 		m_activeScene->OnDelete();
 		delete m_activeScene;
 	}
-	m_activeScene = find->second();
-	m_activeScene->OnStart();
+	RunGameScene(find->second());
 }
 
 void alme::AlmSceneManager::RunScene(uint32_t id)
@@ -44,7 +43,13 @@ void alme::AlmSceneManager::RunScene(uint32_t id)
 		m_activeScene->OnDelete();
 		delete m_activeScene;
 	}
-	m_activeScene = m_scenes[id].second();
+	RunGameScene(m_scenes[id].second());
+}
+
+void alme::AlmSceneManager::RunGameScene(AlmGameScene * scene)
+{
+	m_activeScene = scene;
+	m_activeScene->SetEnginePtr(Engine());
 	m_activeScene->OnStart();
 }
 

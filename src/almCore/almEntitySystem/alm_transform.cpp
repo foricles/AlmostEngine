@@ -1,15 +1,17 @@
 #include "alm_transform.hpp"
 #include "alm_entity.hpp"
 #include "../src/almCore/alm_log.hpp"
+#include "alm_entitymgr.hpp"
 #include <algorithm>
 
 using namespace alme;
 
 
 
-AlmTransform::AlmTransform(IAlmEntity *owner)
-	: m_entity(dynamic_cast<AlmEntity*>(owner))
+AlmTransform::AlmTransform(AlmEntity *owner, AlmEntityManager * manager)
+	: m_entity(owner)
 	, m_parent(nullptr)
+	, m_manager(manager)
 	, m_scale(1, 1, 1)
 	, m_position(0, 0, 0)
 	, m_rotation()
@@ -49,12 +51,14 @@ void AlmTransform::SetParent(IAlmTransform * parent)
 	m_parent = dynamic_cast<AlmTransform*>(parent);
 	parent->AddChild(this);
 
+	m_manager->OnChangeParent(this);
+
 	this->m_recalModelMatrix = true;
 }
 
-void alme::AlmTransform::SetParent(const IAlmTransform & parent)
+IAlmTransform * AlmTransform::GetParent()
 {
-	SetParent(const_cast<IAlmTransform*>(&parent));
+	return m_parent;
 }
 
 void AlmTransform::AddChild(IAlmTransform * child)
@@ -66,20 +70,10 @@ void AlmTransform::AddChild(IAlmTransform * child)
 	dynamic_cast<AlmTransform*>(child)->m_recalModelMatrix = true;
 }
 
-void alme::AlmTransform::AddChild(const IAlmTransform & child)
-{
-	AddChild(const_cast<IAlmTransform*>(&child));
-}
-
 void AlmTransform::RemoveChild(IAlmTransform *child)
 {
 	auto found = std::find(m_children.begin(), m_children.end(), child);
 	if (found != m_children.end()) m_children.erase(found);
-}
-
-void alme::AlmTransform::RemoveChild(const IAlmTransform & child)
-{
-	RemoveChild(const_cast<IAlmTransform*>(&child));
 }
 
 void AlmTransform::RemoveAllChildren()
@@ -174,6 +168,11 @@ const kmu::vec3 & alme::AlmTransform::GetLocalPosition() const
 const kmu::quaternion & alme::AlmTransform::GetLocalRotation() const
 {
 	return m_rotation;
+}
+
+void alme::AlmTransform::UpdateModelMatrix()
+{
+	UpdateModelMatrix(this);
 }
 
 const kmu::mat4 & alme::AlmTransform::GetModelMatrix()

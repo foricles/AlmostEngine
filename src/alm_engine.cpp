@@ -69,11 +69,14 @@ void AlmostEngine::RunLoop()
 	while (!m_quit)
 	{
 		std::this_thread::sleep_for(std::chrono::milliseconds(16));
+
 		m_mainWindow->Update();
 
 		m_renderSystem->BeginRender();
 
 		m_sceneManager->OnUpdate();
+
+		m_entityManager->UpdateTransformationTree();
 
 		m_renderSystem->FinishRender();
 

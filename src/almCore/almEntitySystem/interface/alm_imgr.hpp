@@ -7,6 +7,7 @@
 namespace alme
 {
 class IAlmEntity;
+class IAlmTransform;
 class IAlmEntityManager : protected AlmEngineSystem
 {
 public:
@@ -15,6 +16,9 @@ public:
 	virtual IAlmEntity		*CreateEntity(const std::string &name) = 0;
 	virtual void			 ReleaseEntity(IAlmEntity *entity) = 0;
 	virtual IAlmEntity		*FindByName(const std::string &name) const = 0;
+
+	virtual IAlmTransform	*GetRoot() = 0;
+	virtual void			 UpdateTransformationTree() = 0;
 
 };
 }

@@ -7,6 +7,7 @@
 namespace alme
 {
 
+class AlmEntityManager;
 class AlmTransform : public IAlmTransform
 {
 	friend class AlmEntity;
@@ -19,14 +20,10 @@ public:
 	bool HasChild(const IAlmTransform *candidat)const override;
 
 	void SetParent(IAlmTransform *parent) override;
-	void SetParent(const IAlmTransform &parent) override;
+	IAlmTransform *	GetParent() override;
 
 	void AddChild(IAlmTransform *child) override;
-	void AddChild(const IAlmTransform &child) override;
-
 	void RemoveChild(IAlmTransform *child) override;
-	void RemoveChild(const IAlmTransform &child) override;
-
 	void RemoveAllChildren() override;
 
 	void SetScale(const kmu::vec3 &scale) override;
@@ -46,16 +43,18 @@ public:
 	const kmu::vec3 & GetLocalPosition() const override;
 	const kmu::quaternion & GetLocalRotation() const override;
 
+	void UpdateModelMatrix() override;
 	const kmu::mat4 & GetModelMatrix() override;
 
 	static void UpdateModelMatrix(IAlmTransform *ihead);
 
 private:
-	AlmTransform(IAlmEntity *owner);
+	AlmTransform(AlmEntity *owner, AlmEntityManager * manager);
 
 private:
 	AlmEntity *m_entity;
 	AlmTransform *m_parent;
+	AlmEntityManager * m_manager;
 	std::vector<AlmTransform*> m_children;
 
 	kmu::vec3 m_scale;

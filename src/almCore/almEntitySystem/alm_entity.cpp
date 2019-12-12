@@ -2,10 +2,10 @@
 
 using namespace alme;
 
-AlmEntity::AlmEntity()
+AlmEntity::AlmEntity(AlmEntityManager * manager)
 	: m_id(0)
 	, m_name("Entity")
-	, m_transform(this)
+	, m_transform(this, manager)
 {
 }
 

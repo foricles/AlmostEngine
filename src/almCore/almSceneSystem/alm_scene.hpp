@@ -30,7 +30,6 @@ private:
 private:
 	std::string m_name;
 	AlmostEngine * m_engine;
-	AlmGameSceneP * m_scene;
 
 };
 

@@ -23,7 +23,8 @@ public:
 	uint32_t GetAvailableVideoMemmory() const override;
 	std::string GetGpuVendorName() const override;
 
-	IAlmRenderMaterial *CreateMaterial() override;
+	IAlmMesh *CreateMesh(uint32_t meshId) override;
+	IAlmRenderMaterial *CreateMaterial(uint32_t materialId) override;
 
 private:
 	void InitInstance();

@@ -16,8 +16,8 @@ enum class eAlmProjection
 class AlmCamera : public AlmEntity
 {
 public:
-	AlmCamera(AlmEntityManager * manager);
-	AlmCamera(AlmCamera &&camera) = delete;
+	AlmCamera();
+	AlmCamera(AlmCamera &&camera);
 	AlmCamera(const AlmCamera &camera) = delete;
 
 	~AlmCamera();

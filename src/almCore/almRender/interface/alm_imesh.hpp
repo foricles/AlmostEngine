@@ -9,6 +9,18 @@
 namespace alme
 {
 
+struct sAlmBoundingBox3D
+{
+	union
+	{
+		struct { kmu::vec3 uP1, uP2, uP3, uP4, dP1, dP2, dP3, dP4; };
+		struct { kmu::vec3 n[8]; };
+	};
+
+	sAlmBoundingBox3D() { n[0] = n[1] = n[2] = n[3] = n[4] = n[5] = n[6] = n[7] = kmu::vec3(); }
+	~sAlmBoundingBox3D() {}
+};
+
 class IAlmMesh
 {
 public:
@@ -42,6 +54,8 @@ public:
 	virtual void					Submit() = 0;
 	virtual void					Release() = 0;
 	virtual bool					IsSubmited() const = 0;
+
+	virtual const sAlmBoundingBox3D & GetBoundingBox() const = 0;
 
 };
 

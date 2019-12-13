@@ -16,6 +16,11 @@ AlmEntityManager::AlmEntityManager(AlmostEngine *engine)
 	: IAlmEntityManager(engine)
 	, m_rootTransform(nullptr)
 {
+	auto entity = new AlmEntity();
+	entity->m_name = "_alm_transformation_root_";
+	entity->m_id = GetHash(entity->m_name);
+	Push(entity);
+	m_rootTransform = entity->GetTransform();
 }
 
 AlmEntityManager::~AlmEntityManager()
@@ -27,15 +32,12 @@ IAlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
 	if (FindByName(name))
 		return nullptr;
 
-	AlmEntity *entity = new AlmEntity(this);
+	AlmEntity *entity = new AlmEntity();
 	entity->m_name = name;
 	entity->m_id = GetHash(name);
 	Push(entity);
 
-	if (m_rootTransform != nullptr)
-		entity->GetTransform()->AddChild(m_rootTransform);
-	else
-		m_rootTransform = entity->GetTransform();
+	m_rootTransform->AddChild(entity->GetTransform());
 
 	return entity;
 }
@@ -64,19 +66,10 @@ IAlmTransform * AlmEntityManager::GetRoot()
 
 void AlmEntityManager::UpdateTransformationTree()
 {
-	if (m_rootTransform)
-	{
-		m_rootTransform->UpdateModelMatrix();
-	}
+	m_rootTransform->UpdateModelMatrix();
 }
 
 bool AlmEntityManager::Compare(const Node * left, const Node * right)
 {
 	return left->data->GetId() < right->data->GetId();
-}
-
-void AlmEntityManager::OnChangeParent(IAlmTransform * transform)
-{
-	if (transform == m_rootTransform)
-		m_rootTransform = transform->GetParent();
 }

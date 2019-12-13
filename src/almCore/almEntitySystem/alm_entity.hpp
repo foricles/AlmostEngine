@@ -12,7 +12,7 @@ class AlmEntity : public IAlmEntity
 {
 	friend class AlmEntityManager;
 public:
-	AlmEntity(AlmEntityManager * manager);
+	AlmEntity();
 	AlmEntity(const AlmEntity &rhv) = delete;
 	AlmEntity & operator=(const AlmEntity &rhv) = delete;
 	~AlmEntity();

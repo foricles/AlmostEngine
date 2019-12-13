@@ -1,16 +1,16 @@
 #ifndef _ALM_STANDART_MESH_HPP_
 #define _ALM_STANDART_MESH_HPP_
 
-#include "interface/alm_imesh.hpp"
+#include "../src/almCore/almRender/interface/alm_imesh.hpp"
 
 namespace alme
 {
 
-class AlmMeash : public IAlmMesh
+class AlmMesh : public IAlmMesh
 {
 public:
-	AlmMeash();
-	~AlmMeash();
+	AlmMesh();
+	~AlmMesh();
 
 	uint32_t GetId() const override;
 	uint32_t RenderId() const override;
@@ -40,6 +40,12 @@ public:
 	void Submit() override;
 	void Release() override;
 
+	const sAlmBoundingBox3D & GetBoundingBox() const override;
+
+private:
+	void BuildBoundingBox();
+	void BuildBoundingBox(const kmu::vec3 & pos, const kmu::vec3 & max, const kmu::vec3 & min);
+
 private:
 	uint32_t m_vaoId;
 	uint32_t m_vrtBufferId;
@@ -48,7 +54,7 @@ private:
 	std::vector<uint32_t> m_indeces;
 	std::vector<kmu::vec3> m_normals;
 	std::vector<kmu::vec3> m_vertexes;
-
+	sAlmBoundingBox3D m_boundingBox;
 };
 
 }

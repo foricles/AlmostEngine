@@ -49,6 +49,8 @@ public:
 	virtual void						UpdateModelMatrix() = 0;
 	virtual const kmu::mat4 &			GetModelMatrix() = 0;
 
+	virtual void						SwapParents(IAlmTransform * other) = 0;
+
 };
 
 }

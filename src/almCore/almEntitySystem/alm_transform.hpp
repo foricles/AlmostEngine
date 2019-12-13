@@ -46,15 +46,16 @@ public:
 	void UpdateModelMatrix() override;
 	const kmu::mat4 & GetModelMatrix() override;
 
+	void SwapParents(IAlmTransform * other) override;
+
 	static void UpdateModelMatrix(IAlmTransform *ihead);
 
 private:
-	AlmTransform(AlmEntity *owner, AlmEntityManager * manager);
+	AlmTransform(AlmEntity *owner);
 
 private:
 	AlmEntity *m_entity;
 	AlmTransform *m_parent;
-	AlmEntityManager * m_manager;
 	std::vector<AlmTransform*> m_children;
 
 	kmu::vec3 m_scale;

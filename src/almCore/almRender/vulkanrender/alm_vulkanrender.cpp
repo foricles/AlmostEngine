@@ -179,7 +179,12 @@ void AlmVulkanRender::FinishRender()
 
 
 
-IAlmRenderMaterial * AlmVulkanRender::CreateMaterial()
+IAlmMesh * AlmVulkanRender::CreateMesh(uint32_t meshId)
+{
+	return nullptr;
+}
+
+IAlmRenderMaterial * AlmVulkanRender::CreateMaterial(uint32_t materialId)
 {
 	//TODO: write manager
 	return new AlmVkMaterial(m_variables);

@@ -1,4 +1,6 @@
 #include "alm_glrender.hpp"
+#include "alm_glmaterial.hpp"
+#include "alm_glmesh.hpp"
 #include "../src/almCore/alm_log.hpp"
 #include "../src/almCore/alm_platform.hpp"
 #include <glew/glew.h>
@@ -108,7 +110,12 @@ std::string	AlmGLRender::GetGpuVendorName() const
 	return reinterpret_cast<char*>(vendor);
 }
 
-IAlmRenderMaterial * AlmGLRender::CreateMaterial()
+IAlmMesh * AlmGLRender::CreateMesh(uint32_t meshId)
+{
+	return nullptr;
+}
+
+IAlmRenderMaterial * AlmGLRender::CreateMaterial(uint32_t materialId)
 {
 	return nullptr;
 }

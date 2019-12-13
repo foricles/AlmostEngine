@@ -9,8 +9,8 @@
 #include <almCore/almMath/factorial.hpp>
 #include <almCore/almRender/alm_camera.hpp>
 #include <almCore/almFileSystem/alm_flsystem.hpp>
-#include <almCore/almRender/openglrender/glmaterial/alm_glmaterial.hpp>
-#include <almCore/almRender/alm_mesh.hpp>
+#include <almCore/almRender/openglrender/alm_glmaterial.hpp>
+#include <almCore/almRender/openglrender/alm_glmesh.hpp>
 #include <almCore/almUtils/tinyxml/tinyxml2.h>
 
 class SimpleScene : public alme::AlmGameScene, public alme::AlmEventHandler
@@ -23,10 +23,20 @@ public:
 
 		std::string name = Engine()->GetRenderSystem().GetGpuVendorName();
 
-		CreateEntity("pidor");
-		CreateEntity("suka");
-		CreateEntity("mraz");
+		for (int i(0); i <5 ; ++i)
+		{
+			auto ent = CreateEntity("i_" + std::to_string(i));
+			for (int j(0); j < 6; ++j)
+			{
+				auto ent2 = CreateEntity("i_" + std::to_string(i) + "j_" + std::to_string(j));
+				ent->GetTransform()->AddChild(ent2->GetTransform());
+				for (int k(0); k < 7; ++k)
+				{
+					auto ent3 = CreateEntity("i_" + std::to_string(i) + "j_" + std::to_string(j) + "k_" + std::to_string(k));
+					ent2->GetTransform()->AddChild(ent3->GetTransform());
+				}
+			}
+		}
 
-		int a = 7;
 	}
 };

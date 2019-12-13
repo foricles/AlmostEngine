@@ -8,10 +8,9 @@ using namespace alme;
 
 
 
-AlmTransform::AlmTransform(AlmEntity *owner, AlmEntityManager * manager)
+AlmTransform::AlmTransform(AlmEntity *owner)
 	: m_entity(owner)
 	, m_parent(nullptr)
-	, m_manager(manager)
 	, m_scale(1, 1, 1)
 	, m_position(0, 0, 0)
 	, m_rotation()
@@ -49,9 +48,7 @@ void AlmTransform::SetParent(IAlmTransform * parent)
 	if (m_parent == parent) return;
 	if (m_parent) RemoveChild(this);
 	m_parent = dynamic_cast<AlmTransform*>(parent);
-	parent->AddChild(this);
-
-	m_manager->OnChangeParent(this);
+	m_parent->m_children.push_back(this);
 
 	this->m_recalModelMatrix = true;
 }
@@ -64,16 +61,24 @@ IAlmTransform * AlmTransform::GetParent()
 void AlmTransform::AddChild(IAlmTransform * child)
 {
 	if (HasChild(child)) return;
-	m_children.push_back(dynamic_cast<AlmTransform*>(child));
-	child->SetParent(this);
+	AlmTransform * trmChild = dynamic_cast<AlmTransform*>(child);
 
-	dynamic_cast<AlmTransform*>(child)->m_recalModelMatrix = true;
+	m_children.push_back(trmChild);
+	if (trmChild->m_parent)
+		trmChild->m_parent->RemoveChild(child);
+	trmChild->m_parent = this;
+
+	trmChild->m_recalModelMatrix = true;
 }
 
 void AlmTransform::RemoveChild(IAlmTransform *child)
 {
 	auto found = std::find(m_children.begin(), m_children.end(), child);
-	if (found != m_children.end()) m_children.erase(found);
+	if (found != m_children.end())
+	{
+		(*found)->m_parent = nullptr;
+		m_children.erase(found);
+	}
 }
 
 void AlmTransform::RemoveAllChildren()
@@ -181,6 +186,30 @@ const kmu::mat4 & alme::AlmTransform::GetModelMatrix()
 		UpdateModelMatrix(this);
 
 	return m_modelMatrix;
+}
+
+void AlmTransform::SwapParents(IAlmTransform * other)
+{
+	if (!other) return;
+
+	AlmTransform * trm = dynamic_cast<AlmTransform*>(other);
+	if (!m_parent && !trm->m_parent)
+		return;
+	else if (m_parent && !trm->m_parent)
+	{
+		m_parent->RemoveChild(this);
+		m_parent->AddChild(other);
+		m_parent = nullptr;
+		return;
+	}
+	else if (!m_parent && trm->m_parent)
+	{
+		trm->m_parent->RemoveChild(other);
+		trm->m_parent->AddChild(this);
+		trm->m_parent = nullptr;
+		return;
+	}
+	int a = 7;
 }
 
 void AlmTransform::UpdateModelMatrix(IAlmTransform *ihead)

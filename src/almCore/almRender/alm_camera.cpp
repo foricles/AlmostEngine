@@ -2,9 +2,11 @@
 
 using namespace alme;
 
-AlmCamera::AlmCamera(AlmEntityManager * manager) 
-	: AlmEntity(manager)
-	, m_projection(eAlmProjection::ePerspective)
+AlmCamera::AlmCamera() : m_projection(eAlmProjection::ePerspective)
+{
+}
+
+AlmCamera::AlmCamera(AlmCamera && camera)
 {
 }
 

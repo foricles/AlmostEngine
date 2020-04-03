@@ -2,8 +2,11 @@
 #define _ALM_PLATFORM_HPP_
 
 #include <string>
+#include <vector>
 #include <sstream>
 #include <cassert>
+#include <algorithm>
+#include <functional>
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 	#define NOMINMAX
@@ -11,7 +14,6 @@
 
 	#define ALM_OS_WINDOWS 1
 
-	#include <string>
 	namespace std
 	{
 #ifdef UNICODE

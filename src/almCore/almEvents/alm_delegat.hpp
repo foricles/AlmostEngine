@@ -1,12 +1,9 @@
 #ifndef _ALM_DELEGATE_HPP_
 #define _ALM_DELEGATE_HPP_
 
-#include <functional>
-#include <algorithm>
-#include <vector>
-#include <utility>
 #include "alm_idelegat.hpp"
 #include "alm_eventhandler.hpp"
+#include "../src/almCore/alm_platform.hpp"
 
 template <int...>			struct int_sequence {};
 template <int N, int... Is> struct make_int_sequence : make_int_sequence<N - 1, N - 1, Is...> {};

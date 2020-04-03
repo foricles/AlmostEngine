@@ -114,7 +114,7 @@ inline void RBTree<Data>::Delete(const Data & data)
 	Node *node = FindNode(data);
 	if (!node) return;
 
-	constexpr auto replaceNodeWith = [](Node *& node, Node *replace)->void{
+	auto replaceNodeWith = [](Node *& node, Node *replace)->void{
 		if (node->parent->left == node)
 			node->parent->left = replace;
 		else if (node->parent->right == node)

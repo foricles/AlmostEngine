@@ -20,6 +20,8 @@ public:
 	IAlmTransform *GetRoot();
 	void UpdateTransformationTree() override;
 
+	void ReleaseAllEntities() override;
+
 protected:
 	bool Compare(const Node *left, const Node *right) override;
 

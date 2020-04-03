@@ -25,8 +25,8 @@ public:
 	AlmCamera & operator=(AlmCamera &&camera);
 	AlmCamera & operator=(const AlmCamera &camera) = delete;
 
-	void SetPerspective(float fov, float near, float far, uint32_t wight, uint32_t height);
-	void SetOrthographic(int left, int right, int top, int bottom, int near, int far);
+	void SetPerspective(float fFov, float fNear, float fFar, uint32_t uWight, uint32_t wHeight);
+	void SetOrthographic(int iLeft, int iRight, int iTop, int iBottom, int iNear, int iFar);
 
 	const kmu::mat4 GetCameraMatrix();
 	const kmu::mat4 & GetProjectionMatrix();

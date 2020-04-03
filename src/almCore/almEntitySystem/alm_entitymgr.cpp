@@ -8,7 +8,8 @@ using namespace alme;
 
 inline uint32_t GetHash(const std::string &str)
 {
-	return std::hash_value(str.c_str());
+	std::hash<const char*> ass;
+	return ass._Do_hash(str.c_str());
 }
 
 
@@ -67,6 +68,11 @@ IAlmTransform * AlmEntityManager::GetRoot()
 void AlmEntityManager::UpdateTransformationTree()
 {
 	m_rootTransform->UpdateModelMatrix();
+}
+
+void alme::AlmEntityManager::ReleaseAllEntities()
+{
+	ReleaseTree(m_root);
 }
 
 bool AlmEntityManager::Compare(const Node * left, const Node * right)

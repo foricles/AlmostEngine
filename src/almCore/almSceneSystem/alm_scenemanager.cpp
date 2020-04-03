@@ -1,6 +1,7 @@
 #include "alm_scenemanager.hpp"
-#include "../almSceneSystem/alm_scene.hpp"
 #include "../src/alm_engine.hpp"
+#include "../almSceneSystem/alm_scene.hpp"
+#include "../src/almCore/almEntitySystem/interface/alm_imgr.hpp"
 
 #include <algorithm>
 
@@ -28,26 +29,25 @@ void alme::AlmSceneManager::RunScene(const std::string & name)
 	if (find == m_scenes.end())
 		return;
 
-	if (m_activeScene)
-	{
-		m_activeScene->OnDelete();
-		delete m_activeScene;
-	}
 	RunGameScene(find->second());
 }
 
 void alme::AlmSceneManager::RunScene(uint32_t id)
 {
-	if (m_activeScene)
-	{
-		m_activeScene->OnDelete();
-		delete m_activeScene;
-	}
 	RunGameScene(m_scenes[id].second());
 }
 
 void alme::AlmSceneManager::RunGameScene(AlmGameScene * scene)
 {
+	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
+	manager->ReleaseAllEntities();
+
+	if (m_activeScene)
+	{
+		m_activeScene->OnDelete();
+		delete m_activeScene;
+	}
+
 	m_activeScene = scene;
 	m_activeScene->SetEnginePtr(Engine());
 	m_activeScene->OnStart();

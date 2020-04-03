@@ -1,6 +1,7 @@
 #ifndef _ALM_RENDER_MATERIAL_INTERFACE_HPP_
 #define _ALM_RENDER_MATERIAL_INTERFACE_HPP_
 
+#include "../src/almCore/alm_platform.hpp"
 #include "../src/almCore/almMath/matrices.hpp"
 
 namespace alme

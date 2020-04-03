@@ -1,6 +1,8 @@
 #ifndef _ALM_EVENT_HANDLER_HPP_
 #define _ALM_EVENT_HANDLER_HPP_
 
+#include "../src/almCore/alm_platform.hpp"
+
 namespace alme
 {
 class IAlmDelegate;

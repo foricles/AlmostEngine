@@ -2,6 +2,7 @@
 #define _ALM_TRANSFORM_INTERFACE_HPP_
 
 #include "alm_ientity.hpp"
+#include "../src/almCore/alm_platform.hpp"
 #include "../src/almCore/almMath/matrices.hpp"
 
 namespace alme

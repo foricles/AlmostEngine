@@ -1,7 +1,7 @@
 #ifndef _ALM_SCENE_INTERFACE_HPP_
 #define _ALM_SCENE_INTERFACE_HPP_
 
-#include <string>
+#include "../src/almCore/alm_platform.hpp"
 
 namespace alme
 {

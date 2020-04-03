@@ -1,8 +1,7 @@
 #ifndef _ALM_MESH_INTERFACE_HPP_
 #define _ALM_MESH_INTERFACE_HPP_
 
-#include <string>
-#include <vector>
+#include "../src/almCore/alm_platform.hpp"
 #include "../src/almCore/almMath/vec3.hpp"
 #include "../src/almCore/almMath/vec2.hpp"
 

@@ -1,6 +1,7 @@
 #ifndef _ALM_WINDOW_INTERFACE_HPP_
 #define _ALM_WINDOW_INTERFACE_HPP_
 
+#include "../src/almCore/alm_platform.hpp"
 #include "../src/almCore/alm_engsystem.hpp"
 #include "../src/almCore/almEvents/alm_delegat.hpp"
 

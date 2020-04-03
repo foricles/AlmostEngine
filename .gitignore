@@ -50,3 +50,9 @@
 *.spv
 *.html
 *.cd
+*.suo
+*.pdb
+*.db
+*.ipch
+*.log
+*.txt

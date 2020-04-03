@@ -1,8 +1,9 @@
 #ifndef _ALM_RENDER_SYSTEM_INTERFACE_HPP_
 #define _ALM_RENDER_SYSTEM_INTERFACE_HPP_
 
-#include "alm_imaterial.hpp"
 #include "alm_imesh.hpp"
+#include "alm_imaterial.hpp"
+#include "../src/almCore/alm_platform.hpp"
 #include "../src/almCore/alm_engsystem.hpp"
 #include "../src/almCore/almEvents/alm_eventhandler.hpp"
 

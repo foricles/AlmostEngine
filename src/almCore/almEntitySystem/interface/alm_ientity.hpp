@@ -1,6 +1,8 @@
 #ifndef _ALM_ENTITY_INTERFACE_HPP_
 #define _ALM_ENTITY_INTERFACE_HPP_
 
+#include "../src/almCore/alm_platform.hpp"
+
 namespace alme
 {
 class IAlmTransform;

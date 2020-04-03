@@ -1,9 +1,7 @@
 #ifndef _ALM_SCENE_MANAGER_INTERFACE_HPP_
 #define _ALM_SCENE_MANAGER_INTERFACE_HPP_
 
-#include <vector>
-#include <string>
-#include <functional>
+#include "../src/almCore/alm_platform.hpp"
 #include "../src/almCore/alm_engsystem.hpp"
 
 namespace alme
@@ -33,7 +31,6 @@ public:
 	{
 		m_scenes.push_back(CreateCallback(name, []() -> AlmGameScene* { return new Scene(); }));
 	}
-
 };
 
 }

@@ -33,7 +33,8 @@ const AlmostEngine * AlmGameScene::Engine() const
 
 IAlmEntity * AlmGameScene::CreateEntity(const std::string & name)
 {
-	IAlmEntity * newEntity = const_cast<IAlmEntityManager*>(&m_engine->GetEntityManager())->CreateEntity(name);
+	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
+	auto newEntity = manager->CreateEntity(name);
 
 	return newEntity;
 }

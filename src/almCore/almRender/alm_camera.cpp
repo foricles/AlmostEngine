@@ -19,16 +19,16 @@ AlmCamera & alme::AlmCamera::operator=(AlmCamera && camera)
 	return *this;
 }
 
-void AlmCamera::SetPerspective(float fov, float near, float far, uint32_t wight, uint32_t height)
+void AlmCamera::SetPerspective(float fFov, float fNear, float fFar, uint32_t uWight, uint32_t wHeight)
 {
 	m_projection = eAlmProjection::ePerspective;
-	m_projMatrix = kmu::Perspective(fov, wight, height, near, far);
+	m_projMatrix = kmu::Perspective(fFov, uWight, wHeight, fNear, fFar);
 }
 
-void AlmCamera::SetOrthographic(int left, int right, int top, int bottom, int near, int far)
+void AlmCamera::SetOrthographic(int iLeft, int iRight, int iTop, int iBottom, int iNear, int iFar)
 {
 	m_projection = eAlmProjection::eOrthographic;
-	m_projMatrix = kmu::Orthographic(left, right, top, bottom, near, far);
+	m_projMatrix = kmu::Orthographic(iLeft, iRight, iTop, iBottom, iNear, iFar);
 }
 
 const kmu::mat4 AlmCamera::GetCameraMatrix()

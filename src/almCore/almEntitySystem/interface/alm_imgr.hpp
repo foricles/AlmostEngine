@@ -21,6 +21,7 @@ public:
 	virtual void			 UpdateTransformationTree() = 0;
 
 	virtual void			ReleaseAllEntities() = 0;
+	virtual void			UpdateAllEntities() = 0;
 };
 }
 #endif // !_ALM_MANAGER_INTERFACE_HPP_

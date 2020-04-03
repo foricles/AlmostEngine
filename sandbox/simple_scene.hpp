@@ -26,17 +26,24 @@ public:
 		for (int i(0); i <5 ; ++i)
 		{
 			auto ent = CreateEntity("i_" + std::to_string(i));
+			ent->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
 			for (int j(0); j < 6; ++j)
 			{
 				auto ent2 = CreateEntity("i_" + std::to_string(i) + "j_" + std::to_string(j));
+				ent2->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
 				ent->GetTransform()->AddChild(ent2->GetTransform());
 				for (int k(0); k < 7; ++k)
 				{
 					auto ent3 = CreateEntity("i_" + std::to_string(i) + "j_" + std::to_string(j) + "k_" + std::to_string(k));
+					ent3->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
 					ent2->GetTransform()->AddChild(ent3->GetTransform());
 				}
 			}
 		}
+	}
 
+	void update(alme::IAlmEntity* e, float dt)
+	{
+		std::cout << e->GetName() << std::endl;
 	}
 };

@@ -21,9 +21,11 @@ public:
 	void UpdateTransformationTree() override;
 
 	void ReleaseAllEntities() override;
+	void UpdateAllEntities() override;
 
 protected:
 	bool Compare(const Node *left, const Node *right) override;
+	void UpdateAllEntities(Node *root);
 
 private:
 	IAlmTransform * m_rootTransform;

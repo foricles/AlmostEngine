@@ -5,6 +5,7 @@
 
 using namespace alme;
 
+#define ROOT_TANSFORM_NAME "_alm_transformation_root_"
 
 inline uint32_t GetHash(const std::string &str)
 {
@@ -18,9 +19,8 @@ AlmEntityManager::AlmEntityManager(AlmostEngine *engine)
 	, m_rootTransform(nullptr)
 {
 	auto entity = new AlmEntity();
-	entity->m_name = "_alm_transformation_root_";
+	entity->m_name = ROOT_TANSFORM_NAME;
 	entity->m_id = GetHash(entity->m_name);
-	Push(entity);
 	m_rootTransform = entity->GetTransform();
 }
 
@@ -45,6 +45,7 @@ IAlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
 
 void AlmEntityManager::ReleaseEntity(IAlmEntity * entity)
 {
+	entity->onDelete.Execute(entity);
 	Delete(entity);
 }
 
@@ -72,10 +73,23 @@ void AlmEntityManager::UpdateTransformationTree()
 
 void alme::AlmEntityManager::ReleaseAllEntities()
 {
-	ReleaseTree(m_root);
+	if (m_root) ReleaseTree(m_root);
+}
+
+void alme::AlmEntityManager::UpdateAllEntities()
+{
+	if (m_root) UpdateAllEntities(m_root);
 }
 
 bool AlmEntityManager::Compare(const Node * left, const Node * right)
 {
 	return left->data->GetId() < right->data->GetId();
+}
+
+void alme::AlmEntityManager::UpdateAllEntities(Node* root)
+{
+	if (root->left) UpdateAllEntities(root->left);
+	if (root->right) UpdateAllEntities(root->right);
+	if (root->data->m_hasUpdate)
+		root->data->onUpdate.Execute(root->data, 0);
 }

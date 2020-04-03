@@ -23,6 +23,8 @@ public:
 
 	const AlmostEngine *		Engine() const;
 	IAlmEntity *				CreateEntity(const std::string &name);
+	void						ReleaseEntity(IAlmEntity* entity);
+	IAlmEntity*					FindByName(const std::string& name) const;
 
 private:
 	void SetEnginePtr(AlmostEngine * engine);

@@ -55,8 +55,12 @@ void alme::AlmSceneManager::RunGameScene(AlmGameScene * scene)
 
 void alme::AlmSceneManager::OnUpdate()
 {
+	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
 	if (m_activeScene)
+	{
 		m_activeScene->OnUpdate();
+		manager->UpdateAllEntities();
+	}
 }
 
 void alme::AlmSceneManager::PostUpdate()

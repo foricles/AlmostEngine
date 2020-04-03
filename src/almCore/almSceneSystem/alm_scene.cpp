@@ -38,3 +38,15 @@ IAlmEntity * AlmGameScene::CreateEntity(const std::string & name)
 
 	return newEntity;
 }
+
+void AlmGameScene::ReleaseEntity(IAlmEntity* entity)
+{
+	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
+	manager->ReleaseEntity(entity);
+}
+
+IAlmEntity* AlmGameScene::FindByName(const std::string& name) const
+{
+	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
+	return manager->FindByName(name);
+}

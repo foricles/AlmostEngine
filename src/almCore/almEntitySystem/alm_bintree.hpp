@@ -254,6 +254,7 @@ inline void RBTree<Data>::ReleaseTree(Node * node)
 	if (node->left) ReleaseTree(node->left);
 	if (node->right) ReleaseTree(node->right);
 	delete node;
+	node = nullptr;
 	--m_size;
 }
 

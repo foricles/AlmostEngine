@@ -30,6 +30,7 @@ using namespace alme;
 AlmEntityManager::AlmEntityManager(AlmostEngine *engine)
 	: IAlmEntityManager(engine)
 	, m_container(nullptr)
+	, m_memmory(0)
 {
 	m_container = new AlmContainer();
 }
@@ -47,9 +48,9 @@ IAlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
 	AlmEntity* entity = new AlmEntity();
 	entity->m_name = name;
 	entity->m_id = GetHash(name);
+	m_memmory += sizeof(AlmEntity);
 
 	m_container->push(entity);
-
 	return entity;
 }
 
@@ -60,6 +61,7 @@ void AlmEntityManager::ReleaseEntity(IAlmEntity * entity)
 	{
 		e->onDelete.Execute(entity);
 		delete entity;
+		m_memmory -= sizeof(AlmEntity);
 	}
 }
 
@@ -92,7 +94,7 @@ void AlmEntityManager::UpdateAllEntities()
 
 uint32_t AlmEntityManager::AllocatedMemory() const
 {
-	return 0;
+	return m_memmory;
 }
 
 uint32_t AlmEntityManager::EntitiesCount() const

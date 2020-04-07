@@ -1,7 +1,6 @@
 #ifndef _ALM_TRANSFORM_HPP_
 #define _ALM_TRANSFORM_HPP_
 
-#include <vector>
 #include "interface/alm_itransform.hpp"
 
 namespace alme

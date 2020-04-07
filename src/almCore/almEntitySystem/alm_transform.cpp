@@ -2,10 +2,8 @@
 #include "alm_entity.hpp"
 #include "../src/almCore/alm_log.hpp"
 #include "alm_entitymgr.hpp"
-#include <algorithm>
 
 using namespace alme;
-
 
 
 AlmTransform::AlmTransform(AlmEntity *owner)
@@ -76,8 +74,14 @@ void AlmTransform::RemoveChild(IAlmTransform *child)
 	auto found = std::find(m_children.begin(), m_children.end(), child);
 	if (found != m_children.end())
 	{
-		(*found)->m_parent = nullptr;
+		AlmTransform *& node = (*found);
+		node->m_parent = nullptr;
 		m_children.erase(found);
+		for (AlmTransform * ch : node->m_children) {
+			ch->m_parent = this;
+			ch->m_recalModelMatrix = true;
+			m_children.push_back(ch);
+		}
 	}
 }
 

@@ -50,6 +50,8 @@ IAlmEntity* AlmGameScene::CreateEntity(const std::string& name, IAlmTransform* p
 void AlmGameScene::ReleaseEntity(IAlmEntity* entity)
 {
 	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
+	if (IAlmTransform * parent = entity->GetTransform()->GetParent())
+		parent->RemoveChild(entity->GetTransform());
 	manager->ReleaseEntity(entity);
 }
 

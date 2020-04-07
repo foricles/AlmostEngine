@@ -26,7 +26,7 @@ public:
 
 private:
 	AlmContainer* m_container;
-
+	uint32_t m_memmory;
 };
 
 }

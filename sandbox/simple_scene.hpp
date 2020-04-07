@@ -40,6 +40,9 @@ public:
 				}
 			}
 		}
+
+		std::cout << Engine()->GetEntityManager().EntitiesCount() << " entities" << std::endl;
+		std::cout << Engine()->GetEntityManager().AllocatedMemory() << " bytes" << std::endl;
 	}
 
 	void update(alme::IAlmEntity* e)

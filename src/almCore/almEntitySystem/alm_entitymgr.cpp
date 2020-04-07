@@ -1,25 +1,42 @@
 #include "alm_entitymgr.hpp"
-#include <xhash>
 #include "../src/almCore/almEntitySystem/alm_entity.hpp"
 #include "../src/almCore/almEntitySystem/alm_transform.hpp"
+#include <map>
+
+namespace alme
+{
+	inline uint32_t GetHash(const std::string& str) {
+		return std::hash<std::string>{}(str);
+	}
+
+	class AlmEntityManager::AlmContainer
+	{
+	public:
+		std::map<uint32_t, AlmEntity*> map;
+		void push(AlmEntity* e) {map.emplace(e->GetId(), e);}
+		AlmEntity* kill(AlmEntity* e) { 
+			auto fnd = map.find(e->GetId());
+			if (fnd == map.end()) return nullptr;
+			map.erase(fnd);
+			return fnd->second;
+		}
+	};
+}
+
 
 using namespace alme;
-
-inline uint32_t GetHash(const std::string &str)
-{
-	std::hash<const char*> ass;
-	return ass._Do_hash(str.c_str());
-}
 
 
 AlmEntityManager::AlmEntityManager(AlmostEngine *engine)
 	: IAlmEntityManager(engine)
+	, m_container(nullptr)
 {
-
+	m_container = new AlmContainer();
 }
 
 AlmEntityManager::~AlmEntityManager()
 {
+	delete m_container;
 }
 
 IAlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
@@ -27,51 +44,66 @@ IAlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
 	if (FindByName(name))
 		return nullptr;
 
-	AlmEntity *entity = new AlmEntity();
+	AlmEntity* entity = new AlmEntity();
 	entity->m_name = name;
 	entity->m_id = GetHash(name);
-	Push(entity);
+
+	m_container->push(entity);
 
 	return entity;
 }
 
 void AlmEntityManager::ReleaseEntity(IAlmEntity * entity)
 {
-	entity->onDelete.Execute(entity);
-	Delete(entity);
+	auto alm_ent = static_cast<AlmEntity*>(entity);
+	if (auto e = m_container->kill(alm_ent))
+	{
+		e->onDelete.Execute(entity);
+		delete entity;
+	}
 }
 
 IAlmEntity * AlmEntityManager::FindByName(const std::string & name) const
 {
-	Node *head = m_root;
-	uint32_t nameHash = GetHash(name);
-	while (head)
+	auto fnd = m_container->map.find(GetHash(name));
+	if (fnd == m_container->map.end()) return nullptr;
+	return fnd->second;
+}
+
+void AlmEntityManager::ReleaseAllEntities()
+{
+	auto beg = m_container->map.begin();
+	while (beg != m_container->map.end())
 	{
-		if (head->data->GetName() == name) return head->data;
-		head = (head->data->GetId() < nameHash) ? head->right : head->left;
+		auto sec = beg->second;
+		sec->onDelete.Execute(sec);
+		delete beg->second;
+		beg->second = nullptr;
+		m_container->map.erase(beg);
 	}
-	return nullptr;
 }
 
-void alme::AlmEntityManager::ReleaseAllEntities()
+void AlmEntityManager::UpdateAllEntities()
 {
-	if (m_root) ReleaseTree(m_root);
+	for (const auto & n : m_container->map)
+		if (n.second->m_hasUpdate)
+			n.second->onUpdate.Execute(n.second);
 }
 
-void alme::AlmEntityManager::UpdateAllEntities()
+uint32_t AlmEntityManager::AllocatedMemory() const
 {
-	if (m_root) UpdateAllEntities(m_root);
+	return 0;
 }
 
-bool AlmEntityManager::Compare(const Node * left, const Node * right)
+uint32_t AlmEntityManager::EntitiesCount() const
 {
-	return left->data->GetId() < right->data->GetId();
+	return m_container->map.size();
 }
 
-void alme::AlmEntityManager::UpdateAllEntities(Node* root)
+uint32_t AlmEntityManager::EntitiesCountWithUpdate() const
 {
-	if (root->left) UpdateAllEntities(root->left);
-	if (root->right) UpdateAllEntities(root->right);
-	if (root->data->m_hasUpdate)
-		root->data->onUpdate.Execute(root->data, 0);
+	uint32_t count = 0;
+	for (const auto& n : m_container->map)
+		count += static_cast<bool>(n.second->m_hasUpdate);
+	return count;
 }

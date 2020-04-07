@@ -19,6 +19,10 @@ public:
 
 	virtual void			ReleaseAllEntities() = 0;
 	virtual void			UpdateAllEntities() = 0;
+
+	virtual uint32_t		AllocatedMemory() const = 0;
+	virtual uint32_t		EntitiesCount() const = 0;
+	virtual uint32_t		EntitiesCountWithUpdate() const = 0;
 };
 }
 #endif // !_ALM_MANAGER_INTERFACE_HPP_

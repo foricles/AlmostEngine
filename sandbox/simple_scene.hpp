@@ -42,7 +42,7 @@ public:
 		}
 	}
 
-	void update(alme::IAlmEntity* e, float dt)
+	void update(alme::IAlmEntity* e)
 	{
 		std::cout << e->GetName() << std::endl;
 	}

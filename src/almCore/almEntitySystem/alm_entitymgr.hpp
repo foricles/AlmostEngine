@@ -1,14 +1,14 @@
 #ifndef _ALM_ENTITY_MANAGER_HPP_
 #define _ALM_ENTITY_MANAGER_HPP_
 
-#include "alm_bintree.hpp"
 #include "interface/alm_imgr.hpp"
 
 namespace alme
 {
-
-class AlmEntityManager : public IAlmEntityManager, protected RBTree<IAlmEntity*>
+class AlmEntityManager : public IAlmEntityManager
 {
+public:
+	class AlmContainer;
 public:
 	AlmEntityManager(AlmostEngine *engine);
 	~AlmEntityManager();
@@ -20,9 +20,13 @@ public:
 	void ReleaseAllEntities() override;
 	void UpdateAllEntities() override;
 
-protected:
-	bool Compare(const Node *left, const Node *right) override;
-	void UpdateAllEntities(Node *root);
+	uint32_t AllocatedMemory() const override;
+	uint32_t EntitiesCount() const override;
+	uint32_t EntitiesCountWithUpdate() const override;
+
+private:
+	AlmContainer* m_container;
+
 };
 
 }

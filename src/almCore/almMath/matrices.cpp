@@ -145,47 +145,47 @@ kmu::quaternion kmu::Quaternion(const kmu::mat4 & mtx)
 	float Qw{ 0 }, Qx{ 0 }, Qy{ 0 }, Qz{ 1 };
 	float T{ mtx.at(0, 0) + mtx.at(1, 1) + mtx.at(2, 2) + 1 };
 
-	if (T > 0)
-	{
-		S = 0.5f / sqrt(T);
-		Qw = 0.25f / S;
-		Qx = (mtx[9] - mtx[6]) * S;
-		Qy = (mtx[2] - mtx[8]) * S;
-		Qz = (mtx[4] - mtx[1]) * S;
-	}
-	else
-	{
-		//Столбец 0:
-		if (0)
-		{
-			S = sqrt(1.0f + mtx[0] - mtx[5] - mtx[10]) * 2.0f;
+	//if (T > 0)
+	//{
+	//	S = 0.5f / sqrt(T);
+	//	Qw = 0.25f / S;
+	//	Qx = (mtx[9] - mtx[6]) * S;
+	//	Qy = (mtx[2] - mtx[8]) * S;
+	//	Qz = (mtx[4] - mtx[1]) * S;
+	//}
+	//else
+	//{
+	//	//Столбец 0:
+	//	if (0)
+	//	{
+	//		S = sqrt(1.0f + mtx[0] - mtx[5] - mtx[10]) * 2.0f;
 
-			Qx = 0.5f / S;
-			Qy = (mtx[1] + mtx[4]) / S;
-			Qz = (mtx[2] + mtx[8]) / S;
-			Qw = (mtx[6] + mtx[9]) / S;
-		}
-		else if (1)
-		{
-			//Столбец 1:
-			S = sqrt(1.0f + mtx[5] - mtx[0] - mtx[10]) * 2.0f;
+	//		Qx = 0.5f / S;
+	//		Qy = (mtx[1] + mtx[4]) / S;
+	//		Qz = (mtx[2] + mtx[8]) / S;
+	//		Qw = (mtx[6] + mtx[9]) / S;
+	//	}
+	//	else if (1)
+	//	{
+	//		//Столбец 1:
+	//		S = sqrt(1.0f + mtx[5] - mtx[0] - mtx[10]) * 2.0f;
 
-			Qx = (mtx[1] + mtx[4]) / S;
-			Qy = 0.5f / S;
-			Qz = (mtx[6] + mtx[9]) / S;
-			Qw = (mtx[2] + mtx[8]) / S;
-		}
-		else if (2)
-		{
-			//Столбец 2:
-			S = sqrt(1.0f + mtx[10] - mtx[0] - mtx[5]) * 2.0f;
+	//		Qx = (mtx[1] + mtx[4]) / S;
+	//		Qy = 0.5f / S;
+	//		Qz = (mtx[6] + mtx[9]) / S;
+	//		Qw = (mtx[2] + mtx[8]) / S;
+	//	}
+	//	else if (2)
+	//	{
+	//		//Столбец 2:
+	//		S = sqrt(1.0f + mtx[10] - mtx[0] - mtx[5]) * 2.0f;
 
-			Qx = (mtx[2] + mtx[8]) / S;
-			Qy = (mtx[6] + mtx[9]) / S;
-			Qz = 0.5f / S;
-			Qw = (mtx[1] + mtx[4]) / S;
-		}
-	}
+	//		Qx = (mtx[2] + mtx[8]) / S;
+	//		Qy = (mtx[6] + mtx[9]) / S;
+	//		Qz = 0.5f / S;
+	//		Qw = (mtx[1] + mtx[4]) / S;
+	//	}
+	//}
 
 	return quaternion(Qx, Qy, Qz, Qw);
 }

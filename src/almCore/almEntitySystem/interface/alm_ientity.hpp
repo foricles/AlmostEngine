@@ -19,7 +19,7 @@ public:
 
 	bool							m_hasUpdate;
 	AlmDelegate<IAlmEntity*>		onDelete;
-	AlmDelegate<IAlmEntity*, float> onUpdate;
+	AlmDelegate<IAlmEntity*>		onUpdate;
 };
 }
 

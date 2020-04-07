@@ -1,6 +1,6 @@
 #include "alm_file.hpp"
 #include "alm_flsystem.hpp"
-#include <cstdio>
+#include <fstream>
 
 using namespace alme;
 #define SAFE_DELETE_DATA(x) if(x){delete [] x; x = nullptr; }
@@ -9,31 +9,34 @@ std::vector<std::wstring> io::AlmFile::s_filepath;
 
 io::AlmFile::AlmFile()
 	: m_data(nullptr)
+	, m_size(0)
 	, m_pathIndex(-1)
 {
 }
 
 io::AlmFile::AlmFile(const std::wstring & filePath)
-	: m_data(nullptr)
-	, m_pathIndex(-1)
+	: AlmFile()
 {
 	m_pathIndex = s_filepath.size();
 	s_filepath.push_back(filePath);
 }
 
 io::AlmFile::AlmFile(const std::string & filePath)
-	: AlmFile(StrToWStr(filePath))
+	: AlmFile(io::AlmFileSystem::StrToWStr(filePath))
 {
 }
 
-io::AlmFile::AlmFile(AlmFile && rhv)
+io::AlmFile::AlmFile(AlmFile && rhv) noexcept
 	: m_data(rhv.m_data)
+	, m_size(0)
+	, m_pathIndex(-1)
 {
 	rhv.m_data = nullptr;
+	std::swap(m_size, rhv.m_size);
 	std::swap(m_pathIndex, rhv.m_pathIndex);
 }
 
-io::AlmFile & alme::io::AlmFile::operator=(AlmFile && rhv)
+io::AlmFile & alme::io::AlmFile::operator=(AlmFile && rhv) noexcept
 {
 	m_data = rhv.m_data;
 	std::swap(m_pathIndex, rhv.m_pathIndex);
@@ -65,46 +68,39 @@ const std::wstring & io::AlmFile::GetPath() const
 
 bool io::AlmFile::Exist() const
 {
-	bool exist = false;
-	FILE *file = NULL;
-	_wfopen_s(&file, GetFullPath().c_str(), L"rt");
-	exist = file;
-	if (exist) fclose(file);
-	return exist;
+	std::ifstream infile(GetFullPath());
+	return infile.good();
 }
 
-
-
-io::AlmFile & io::AlmFile::Load()
+io::AlmFile & io::AlmFile::Load(bool bin)
 {
+	uint32_t o = !bin;
 	SAFE_DELETE_DATA(m_data);
-	FILE *file = NULL;
-	_wfopen_s(&file, GetFullPath().c_str(), L"rb");
-	fseek(file, 0, SEEK_END);
-	m_size = ftell(file);
-	m_data = new uint8_t[m_size];
-	fseek(file, 0, SEEK_SET);
-	fread(m_data, sizeof(uint8_t), m_size, file);
-	fclose(file);
-
+	auto mode = (bin) ? (std::ios::binary) : (std::ios::in);
+	std::ifstream file(GetFullPath(), mode | std::ios::ate);
+	std::streamsize size = file.tellg();
+	m_size = static_cast<uint32_t>(size) + o;
+	file.seekg(0, std::ios::beg);
+	m_data = new uint8_t[m_size]{ 0 };
+	file.read((char*)m_data, m_size - o);
 	return *this;
 }
 
-io::AlmFile & io::AlmFile::Load(const std::wstring &filepath)
+io::AlmFile & io::AlmFile::Load(const std::wstring &filepath, bool bin)
 {
 	if (m_pathIndex < 0)
 	{
 		m_pathIndex = s_filepath.size();
 		s_filepath.push_back(filepath);
-		return Load();
+		return Load(bin);
 	}
 	s_filepath[m_pathIndex] = filepath;
-	return Load();
+	return Load(bin);
 }
 
-io::AlmFile & io::AlmFile::Load(const std::string &filepath)
+io::AlmFile & io::AlmFile::Load(const std::string &filepath, bool bin)
 {
-	return Load(StrToWStr(filepath));
+	return Load(io::AlmFileSystem::StrToWStr(filepath), bin);
 }
 
 void io::AlmFile::Write(const uint8_t * data, uint32_t size)
@@ -116,15 +112,12 @@ void io::AlmFile::Write(const uint8_t * data, uint32_t size)
 	m_size = size;
 }
 
-void io::AlmFile::Save()
+void io::AlmFile::Save(bool bin)
 {
-	FILE *file = NULL;
-	_wfopen_s(&file, GetFullPath().c_str(), L"wb");
-	if (file)
-	{
-		fwrite(m_data, sizeof(char), m_size, file);
-		fclose(file);
-	}
+	auto mode = std::ios::out | (bin ? std::ios::binary : 0);
+	std::ofstream myfile(GetFullPath(), mode);
+	myfile.write((char*)m_data, m_size);
+	myfile.close();
 }
 
 std::vector<uint8_t> io::AlmFile::asBin() const
@@ -137,15 +130,4 @@ std::vector<uint8_t> io::AlmFile::asBin() const
 std::string io::AlmFile::asString() const
 {
 	return std::move(std::string((char*)m_data));
-}
-
-std::wstring io::AlmFile::StrToWStr(const std::string & source)
-{
-	std::wstring ret;
-	std::mbstate_t state = std::mbstate_t();
-	const char *originals = source.data();
-	ret.resize(std::mbsrtowcs(NULL, &originals, 0, &state));
-	wchar_t * dest = const_cast<wchar_t*>(ret.data());
-	std::mbsrtowcs(dest, &originals, ret.size(), &state);
-	return std::move(ret);
 }

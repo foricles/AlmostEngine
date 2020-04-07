@@ -43,10 +43,16 @@ public:
 
 		std::cout << Engine()->GetEntityManager().EntitiesCount() << " entities" << std::endl;
 		std::cout << Engine()->GetEntityManager().AllocatedMemory() << " bytes" << std::endl;
+
+		std::cout << alme::io::AlmFileSystem::WStrToStr(alme::io::AlmFileSystem::getRootPath()) << std::endl;
+		alme::io::AlmFile file("sha.shader");
+		std::cout << alme::io::AlmFileSystem::WStrToStr(file.GetFullPath()) << std::endl;
+		file.Load();
+		std::cout << file.asString() << std::endl;
 	}
 
 	void update(alme::IAlmEntity* e)
 	{
-		std::cout << e->GetName() << std::endl;
+		//std::cout << e->GetName() << std::endl;
 	}
 };

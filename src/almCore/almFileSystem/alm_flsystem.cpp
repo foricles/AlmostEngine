@@ -1,5 +1,7 @@
 #include "alm_flsystem.hpp"
+#include <locale>
 #include <cstdio>
+#include <codecvt>
 
 using namespace alme;
 
@@ -32,4 +34,18 @@ std::almstring io::AlmFileSystem::getRootPath()
 #elif ALM_OS_UNIX
 
 #endif // ALM_OS_WINDOWS
+}
+
+std::wstring io::AlmFileSystem::StrToWStr(const std::string& str)
+{
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+	return converterX.from_bytes(str);
+}
+
+std::string io::AlmFileSystem::WStrToStr(const std::wstring& wstr)
+{
+	using convert_typeX = std::codecvt_utf8<wchar_t>;
+	std::wstring_convert<convert_typeX, wchar_t> converterX;
+	return converterX.to_bytes(wstr);
 }

@@ -15,9 +15,8 @@ public:
 	~AlmFileSystem();
 
 	static std::almstring getRootPath();
-
-private:
-
+	static std::wstring StrToWStr(const std::string & str);
+	static std::string WStrToStr(const std::wstring & wstr);
 };
 
 

@@ -12,10 +12,10 @@ class AlmFile
 {
 public:
 	AlmFile();
-	AlmFile(AlmFile &&rhv);
+	AlmFile(AlmFile &&rhv) noexcept;
 	AlmFile(const std::string &filePath);
 	AlmFile(const std::wstring &filePath);
-	AlmFile &operator=(AlmFile &&rhv);
+	AlmFile &operator=(AlmFile &&rhv) noexcept;
 
 	AlmFile(const AlmFile &rhv) = delete;
 	AlmFile &operator=(const AlmFile &rhv) = delete;
@@ -30,18 +30,15 @@ public:
 	std::wstring GetFullPath() const;
 	const std::wstring & GetPath() const;
 
-	AlmFile & Load();
-	AlmFile & Load(const std::string &filepath);
-	AlmFile & Load(const std::wstring &filepath);
+	AlmFile & Load(bool bin = false);
+	AlmFile & Load(const std::string &filepath, bool bin = false);
+	AlmFile & Load(const std::wstring &filepath, bool bin = false);
 
 	void Write(const uint8_t *data, uint32_t size);
-	void Save();
+	void Save(bool bin = false);
 
 	std::vector<uint8_t> asBin() const;
 	std::string asString() const;
-
-public:
-	std::wstring StrToWStr(const std::string &source);
 
 private:
 	uint8_t *m_data;

@@ -17,9 +17,6 @@ public:
 	virtual void			 ReleaseEntity(IAlmEntity *entity) = 0;
 	virtual IAlmEntity		*FindByName(const std::string &name) const = 0;
 
-	virtual IAlmTransform	*GetRoot() = 0;
-	virtual void			 UpdateTransformationTree() = 0;
-
 	virtual void			ReleaseAllEntities() = 0;
 	virtual void			UpdateAllEntities() = 0;
 };

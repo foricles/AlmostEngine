@@ -76,8 +76,6 @@ void AlmostEngine::RunLoop()
 
 		m_sceneManager->OnUpdate();
 
-		m_entityManager->UpdateTransformationTree();
-
 		m_renderSystem->FinishRender();
 
 		m_sceneManager->PostUpdate();

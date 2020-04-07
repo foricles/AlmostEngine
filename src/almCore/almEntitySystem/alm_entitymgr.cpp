@@ -5,8 +5,6 @@
 
 using namespace alme;
 
-#define ROOT_TANSFORM_NAME "_alm_transformation_root_"
-
 inline uint32_t GetHash(const std::string &str)
 {
 	std::hash<const char*> ass;
@@ -16,12 +14,8 @@ inline uint32_t GetHash(const std::string &str)
 
 AlmEntityManager::AlmEntityManager(AlmostEngine *engine)
 	: IAlmEntityManager(engine)
-	, m_rootTransform(nullptr)
 {
-	auto entity = new AlmEntity();
-	entity->m_name = ROOT_TANSFORM_NAME;
-	entity->m_id = GetHash(entity->m_name);
-	m_rootTransform = entity->GetTransform();
+
 }
 
 AlmEntityManager::~AlmEntityManager()
@@ -37,8 +31,6 @@ IAlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
 	entity->m_name = name;
 	entity->m_id = GetHash(name);
 	Push(entity);
-
-	m_rootTransform->AddChild(entity->GetTransform());
 
 	return entity;
 }
@@ -59,16 +51,6 @@ IAlmEntity * AlmEntityManager::FindByName(const std::string & name) const
 		head = (head->data->GetId() < nameHash) ? head->right : head->left;
 	}
 	return nullptr;
-}
-
-IAlmTransform * AlmEntityManager::GetRoot()
-{
-	return m_rootTransform;
-}
-
-void AlmEntityManager::UpdateTransformationTree()
-{
-	m_rootTransform->UpdateModelMatrix();
 }
 
 void alme::AlmEntityManager::ReleaseAllEntities()

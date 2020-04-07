@@ -8,6 +8,7 @@ namespace alme
 class IAlmEntity;
 class AlmostEngine;
 class AlmGameSceneP;
+class IAlmTransform;
 class AlmGameScene
 {
 friend class AlmSceneManager;
@@ -23,8 +24,12 @@ public:
 
 	const AlmostEngine *		Engine() const;
 	IAlmEntity *				CreateEntity(const std::string &name);
+	IAlmEntity *				CreateEntity(const std::string &name, IAlmTransform* parent);
 	void						ReleaseEntity(IAlmEntity* entity);
 	IAlmEntity*					FindByName(const std::string& name) const;
+
+	IAlmTransform* GetRoot();
+	void UpdateTransformationTree();
 
 private:
 	void SetEnginePtr(AlmostEngine * engine);
@@ -32,7 +37,7 @@ private:
 private:
 	std::string m_name;
 	AlmostEngine * m_engine;
-
+	IAlmTransform* m_rootTransform;
 };
 
 }

@@ -17,19 +17,12 @@ public:
 	void ReleaseEntity(IAlmEntity *entity) override;
 	IAlmEntity *FindByName(const std::string &name) const override;
 
-	IAlmTransform *GetRoot();
-	void UpdateTransformationTree() override;
-
 	void ReleaseAllEntities() override;
 	void UpdateAllEntities() override;
 
 protected:
 	bool Compare(const Node *left, const Node *right) override;
 	void UpdateAllEntities(Node *root);
-
-private:
-	IAlmTransform * m_rootTransform;
-
 };
 
 }

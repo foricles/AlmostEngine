@@ -2,6 +2,7 @@
 #include "../src/alm_engine.hpp"
 #include "../almSceneSystem/alm_scene.hpp"
 #include "../src/almCore/almEntitySystem/interface/alm_imgr.hpp"
+#include "../src/almCore/almUtils/alm_timesystem.hpp"
 
 #include <algorithm>
 
@@ -55,17 +56,24 @@ void alme::AlmSceneManager::RunGameScene(AlmGameScene * scene)
 
 void alme::AlmSceneManager::OnUpdate()
 {
+	auto timer = const_cast<AlmTimeSystem*>(&Engine()->GetTimeSystem());
 	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
 	if (m_activeScene)
 	{
 		m_activeScene->UpdateTransformationTree();
+		timer->AddPoint("Transformation tree updated");
 		m_activeScene->OnUpdate();
 		manager->UpdateAllEntities();
+		timer->AddPoint("Scene updated");
 	}
 }
 
 void alme::AlmSceneManager::PostUpdate()
 {
+	auto timer = const_cast<AlmTimeSystem*>(&Engine()->GetTimeSystem());
 	if (m_activeScene)
+	{
 		m_activeScene->PostUpdate();
+		timer->AddPoint("Scene postupdated");
+	}
 }

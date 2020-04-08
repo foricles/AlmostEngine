@@ -7,6 +7,7 @@
 
 namespace alme
 {
+class AlmTimeSystem;
 class AlmSceneManager;
 class IAlmEntityManager;
 
@@ -18,6 +19,7 @@ public:
 	~AlmostEngine();
 
 	const IAlmWindow &					GetMainWindow() const;
+	const AlmTimeSystem &				GetTimeSystem() const;
 	const AlmSceneManager &				GetSceneManager() const;
 	const IAlmRenderSystem &			GetRenderSystem() const;
 	const IAlmEntityManager &			GetEntityManager() const;
@@ -26,6 +28,7 @@ private:
 	void								InititalizeSubsystems();
 	void								RunLoop();
 	IAlmWindow							*m_mainWindow;
+	AlmTimeSystem						*m_timeSystem;
 	AlmSceneManager						*m_sceneManager;
 	IAlmRenderSystem					*m_renderSystem;
 	IAlmEntityManager					*m_entityManager;

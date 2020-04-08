@@ -12,6 +12,7 @@
 #include <almCore/almRender/openglrender/alm_glmaterial.hpp>
 #include <almCore/almRender/openglrender/alm_glmesh.hpp>
 #include <almCore/almUtils/tinyxml/tinyxml2.h>
+#include <almCore/almUtils/alm_timesystem.hpp>
 
 class SimpleScene : public alme::AlmGameScene, public alme::AlmEventHandler
 {
@@ -26,20 +27,22 @@ public:
 		for (int i(0); i <5 ; ++i)
 		{
 			auto ent = CreateEntity("i_" + std::to_string(i));
-			ent->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
+			//ent->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
 			for (int j(0); j < 6; ++j)
 			{
 				auto ent2 = CreateEntity("i_" + std::to_string(i) + "j_" + std::to_string(j));
-				ent2->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
+				//ent2->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
 				ent->GetTransform()->AddChild(ent2->GetTransform());
 				for (int k(0); k < 7; ++k)
 				{
 					auto ent3 = CreateEntity("i_" + std::to_string(i) + "j_" + std::to_string(j) + "k_" + std::to_string(k));
-					ent3->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
+					//ent3->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
 					ent2->GetTransform()->AddChild(ent3->GetTransform());
 				}
 			}
 		}
+
+		CreateEntity("updateentity")->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
 
 		std::cout << Engine()->GetEntityManager().EntitiesCount() << " entities" << std::endl;
 		std::cout << Engine()->GetEntityManager().AllocatedMemory() << " bytes" << std::endl;
@@ -53,6 +56,9 @@ public:
 
 	void update(alme::IAlmEntity* e)
 	{
-		//std::cout << e->GetName() << std::endl;
+		std::cout << e->GetName() << std::endl;
+		for (const auto & t : Engine()->GetTimeSystem().timePoints())
+			std::cout << t.first << ": " << t.second << std::endl;
+		std::cout << "---------------------------" << std::endl;
 	}
 };

@@ -1,6 +1,7 @@
 #ifndef _ALM_PLATFORM_HPP_
 #define _ALM_PLATFORM_HPP_
 
+#include <array>
 #include <string>
 #include <vector>
 #include <sstream>

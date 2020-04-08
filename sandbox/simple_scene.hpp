@@ -13,6 +13,7 @@
 #include <almCore/almRender/openglrender/alm_glmesh.hpp>
 #include <almCore/almUtils/tinyxml/tinyxml2.h>
 #include <almCore/almUtils/alm_timesystem.hpp>
+#include <almCore/almUtils/image/alm_imageloader.hpp>
 
 class SimpleScene : public alme::AlmGameScene, public alme::AlmEventHandler
 {
@@ -52,6 +53,15 @@ public:
 		std::cout << alme::io::AlmFileSystem::WStrToStr(file.GetFullPath()) << std::endl;
 		file.Load();
 		std::cout << file.asString() << std::endl;
+
+		auto image = alme::image::AlmImageLoader::Create("test.png");
+		alme::kmu::vec2 m(image->GetWight()/2.0f, image->GetHeight()/2.0f);
+		float n = 500;
+		float dt = ((std::atan(1.0) * 8) / n);
+		for (int i(0); i < n; ++i)
+			image->SetPixel(cos(i*dt)*100+m.x, sin(i*dt)*100+m.y, {0,0,0,255});
+		alme::image::AlmImageLoader::SaveImage(image, "procesed.png");
+		int a = 5;
 	}
 
 	void update(alme::IAlmEntity* e)

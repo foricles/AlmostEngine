@@ -103,13 +103,25 @@ io::AlmFile & io::AlmFile::Load(const std::string &filepath, bool bin)
 	return Load(io::AlmFileSystem::StrToWStr(filepath), bin);
 }
 
-void io::AlmFile::Write(const uint8_t * data, uint32_t size)
+void io::AlmFile::Write(const uint8_t* data, uint32_t size, bool append)
 {
 	if (!data) return;
-	SAFE_DELETE_DATA(m_data);
-	m_data = new uint8_t[size+1];
-	memcpy_s(m_data, size, data, size);
-	m_size = size;
+	if (!append || !m_data)
+	{
+		SAFE_DELETE_DATA(m_data);
+		m_data = new uint8_t[size];
+		memcpy_s(m_data, size, data, size);
+		m_size = size;
+	}
+	else
+	{
+		uint8_t* buffer = new uint8_t[m_size + size];
+		memcpy(buffer, m_data, m_size);
+		memcpy(buffer + m_size, data, size);
+		SAFE_DELETE_DATA(m_data);
+		m_data = buffer;
+		m_size += size;
+	}
 }
 
 void io::AlmFile::Save(bool bin)
@@ -130,4 +142,10 @@ std::vector<uint8_t> io::AlmFile::asBin() const
 std::string io::AlmFile::asString() const
 {
 	return std::move(std::string((char*)m_data));
+}
+
+void alme::io::AlmFile::c_read(uint8_t*& rhv)
+{
+	rhv = m_data;
+	m_data = nullptr;
 }

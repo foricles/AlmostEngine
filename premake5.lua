@@ -37,6 +37,9 @@ filter "configurations:Release"
 			"opengl32",
 			"vulkan-1",
 			"assimp-vc141-mt",
+			"zlib",
+			"libpng",
+			"jpeg"
 		}
 		
 		includedirs --directories

@@ -201,13 +201,13 @@ void image::AlmImageLoader::SaveImagePNG(image::AlmImage* img, const std::string
 	png_write_info(png, info);
 
 	auto row_pointers = (png_byte*)malloc(png_get_rowbytes(png, info));
-	for (int x = 0; x < img->GetWight(); x++) {
-		for (int y = 0; y < img->GetHeight(); y++) {
+	for (int x = 0; x < img->GetHeight(); x++) {
+		for (int y = 0; y < img->GetWight(); y++) {
 			png_bytep px = &(row_pointers[y * 4]);
-			px[0] = static_cast<png_byte>(img->m_data[x * img->GetHeight() + y].x);
-			px[1] = static_cast<png_byte>(img->m_data[x * img->GetHeight() + y].y);
-			px[2] = static_cast<png_byte>(img->m_data[x * img->GetHeight() + y].z);
-			px[3] = static_cast<png_byte>(img->m_data[x * img->GetHeight() + y].w);
+			px[0] = static_cast<png_byte>(img->m_data[y * img->GetHeight() + x].x);
+			px[1] = static_cast<png_byte>(img->m_data[y * img->GetHeight() + x].y);
+			px[2] = static_cast<png_byte>(img->m_data[y * img->GetHeight() + x].z);
+			px[3] = static_cast<png_byte>(img->m_data[y * img->GetHeight() + x].w);
 		}
 		png_write_row(png, row_pointers);
 	}

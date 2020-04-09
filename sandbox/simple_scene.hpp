@@ -62,6 +62,11 @@ public:
 			image->SetPixel(cos(i*dt)*100+m.x, sin(i*dt)*100+m.y, {0,0,0,255});
 		alme::image::AlmImageLoader::SaveImage(image, "procesed.png");
 		int a = 5;
+
+		auto qer = alme::image::AlmImageLoader::Create(10, 10, alme::image::ePng);
+		qer->SetPixel(9, 0, {0,0,0,255});
+		qer->SetPixel(0, 9, {255,0,0,255});
+		alme::image::AlmImageLoader::SaveImage(qer, "created.png");
 	}
 
 	void update(alme::IAlmEntity* e)

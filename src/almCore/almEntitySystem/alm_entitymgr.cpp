@@ -40,7 +40,7 @@ AlmEntityManager::~AlmEntityManager()
 	delete m_container;
 }
 
-IAlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
+AlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
 {
 	if (FindByName(name))
 		return nullptr;
@@ -54,10 +54,9 @@ IAlmEntity * AlmEntityManager::CreateEntity(const std::string &name)
 	return entity;
 }
 
-void AlmEntityManager::ReleaseEntity(IAlmEntity * entity)
+void AlmEntityManager::ReleaseEntity(AlmEntity * entity)
 {
-	auto alm_ent = static_cast<AlmEntity*>(entity);
-	if (auto e = m_container->kill(alm_ent))
+	if (auto e = m_container->kill(entity))
 	{
 		e->onDelete.Execute(entity);
 		delete entity;
@@ -65,7 +64,7 @@ void AlmEntityManager::ReleaseEntity(IAlmEntity * entity)
 	}
 }
 
-IAlmEntity * AlmEntityManager::FindByName(const std::string & name) const
+AlmEntity * AlmEntityManager::FindByName(const std::string & name) const
 {
 	auto fnd = m_container->map.find(GetHash(name));
 	if (fnd == m_container->map.end()) return nullptr;

@@ -20,8 +20,8 @@ filter "configurations:Release"
 		kind "StaticLib"
 		language "C++"
 		
-		targetdir ("%{prj.name}/bin/%{cfg.buildcfg}/%{prj.name}") --executable ouput
-		objdir ("%{prj.name}/bin-int/%{cfg.buildcfg}/%{prj.name}") --binnary output
+		targetdir ("%{wks.name}/%{prj.name}/bin/%{cfg.buildcfg}") --executable ouput
+		objdir ("%{wks.name}/%{prj.name}/bin-int/%{cfg.buildcfg}") --binnary output
 		
 		files --files in prj
 		{
@@ -75,8 +75,8 @@ filter "configurations:Release"
 		kind "ConsoleApp"
 		language "C++"
 		
-		targetdir ("%{prj.name}/bin/%{cfg.buildcfg}/%{prj.name}") --executable ouput
-		objdir ("%{prj.name}/bin-int/%{cfg.buildcfg}/%{prj.name}") --binnary output		
+		targetdir ("%{wks.name}/%{prj.name}/bin/%{cfg.buildcfg}") --executable ouput
+		objdir ("%{wks.name}/%{prj.name}/bin-int/%{cfg.buildcfg}") --binnary output
 		
 		files --files in prj
 		{

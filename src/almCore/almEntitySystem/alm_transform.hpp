@@ -1,70 +1,62 @@
 #ifndef _ALM_TRANSFORM_HPP_
 #define _ALM_TRANSFORM_HPP_
 
-#include "interface/alm_itransform.hpp"
+#include <vector>
+#include "../almMath/matrices.hpp"
 
 namespace alme
 {
+	class AlmTransform
+	{
+	public:
+		AlmTransform();
+		virtual ~AlmTransform();
 
-class AlmEntityManager;
-class AlmTransform : public IAlmTransform
-{
-	friend class AlmEntity;
-public:
-	~AlmTransform();
+		bool HasChild(const AlmTransform* candidat) const;
 
-	IAlmEntity *GetEntity() override;
-	const IAlmEntity *GetEntity() const override;
+		void SetParent(AlmTransform* parent);
+		AlmTransform*	GetParent() ;
 
-	bool HasChild(const IAlmTransform *candidat)const override;
+		void AddChild(AlmTransform* child) ;
+		void RemoveChild(AlmTransform* child) ;
+		void RemoveAllChildren() ;
 
-	void SetParent(IAlmTransform *parent) override;
-	IAlmTransform *	GetParent() override;
+		void SetScale(const kmu::vec3 &scale) ;
+		void SetScale(float x = 1, float y = 1, float z = 1) ;
 
-	void AddChild(IAlmTransform *child) override;
-	void RemoveChild(IAlmTransform *child) override;
-	void RemoveAllChildren() override;
+		void SetPosition(const kmu::vec3 &pos);
+		void SetPosition(float x = 0, float y = 0, float z = 0);
 
-	void SetScale(const kmu::vec3 &scale) override;
-	void SetScale(float x = 1, float y = 1, float z = 1) override;
+		void SetRotation(const kmu::quaternion &rot);
+		void SetRotation(const kmu::vec3 &euler);
 
-	void SetPosition(const kmu::vec3 &pos) override;
-	void SetPosition(float x = 0, float y = 0, float z = 0) override;
+		kmu::vec3 GetScale();
+		kmu::vec3 GetPosition();
+		kmu::quaternion GetRotation();
 
-	void SetRotation(const kmu::quaternion &rot) override;
-	void SetRotation(const kmu::vec3 &euler) override;
+		const kmu::vec3 & GetLocalScale() const;
+		const kmu::vec3 & GetLocalPosition() const;
+		const kmu::quaternion & GetLocalRotation() const;
 
-	kmu::vec3 GetScale() override;
-	kmu::vec3 GetPosition() override;
-	kmu::quaternion GetRotation() override;
+		void UpdateModelMatrix();
+		const kmu::mat4 & GetModelMatrix();
 
-	const kmu::vec3 & GetLocalScale() const override;
-	const kmu::vec3 & GetLocalPosition() const override;
-	const kmu::quaternion & GetLocalRotation() const override;
+		void SwapParents(AlmTransform* other);
 
-	void UpdateModelMatrix() override;
-	const kmu::mat4 & GetModelMatrix() override;
+		static void UpdateModelMatrix(AlmTransform*ihead);
 
-	void SwapParents(IAlmTransform * other) override;
+	private:
+		AlmTransform *m_parent;
+		std::vector<AlmTransform*> m_children;
 
-	static void UpdateModelMatrix(IAlmTransform *ihead);
+		kmu::vec3 m_scale;
+		kmu::vec3 m_position;
+		kmu::quaternion m_rotation;
 
-private:
-	AlmTransform(AlmEntity *owner);
+		bool m_recalModelMatrix;
 
-private:
-	AlmEntity *m_entity;
-	AlmTransform *m_parent;
-	std::vector<AlmTransform*> m_children;
-
-	kmu::vec3 m_scale;
-	kmu::vec3 m_position;
-	kmu::quaternion m_rotation;
-
-	bool m_recalModelMatrix;
-
-	kmu::mat4 m_modelMatrix;
-};
+		kmu::mat4 m_modelMatrix;
+	};
 
 }
 

@@ -3,8 +3,8 @@
 #include "../src/almCore/almUser/almWindow/alm_iwindow.hpp"
 #include "../src/almCore/almEntitySystem/interface/alm_imgr.hpp"
 #include "../src/almCore/almRender/interface/alm_irendersys.hpp"
-#include "../src/almCore/almEntitySystem/interface/alm_ientity.hpp"
-#include "../src/almCore/almEntitySystem/interface/alm_itransform.hpp"
+#include "../src/almCore/almEntitySystem/alm_entity.hpp"
+#include "../src/almCore/almEntitySystem/alm_transform.hpp"
 
 #define ROOT_TANSFORM_NAME "_alm_transformation_root_"
 
@@ -26,7 +26,7 @@ void AlmGameScene::SetEnginePtr(AlmostEngine * engine)
 {
 	m_engine = engine;
 	auto manager = const_cast<IAlmEntityManager*>(&engine->GetEntityManager());
-	m_rootTransform = manager->CreateEntity(ROOT_TANSFORM_NAME)->GetTransform();
+	m_rootTransform = manager->CreateEntity(ROOT_TANSFORM_NAME);
 }
 
 const AlmostEngine * AlmGameScene::Engine() const
@@ -34,34 +34,34 @@ const AlmostEngine * AlmGameScene::Engine() const
 	return m_engine;
 }
 
-IAlmEntity * AlmGameScene::CreateEntity(const std::string & name)
+AlmEntity * AlmGameScene::CreateEntity(const std::string & name)
 {
 	return CreateEntity(name, m_rootTransform);
 }
 
-IAlmEntity* AlmGameScene::CreateEntity(const std::string& name, IAlmTransform* parent)
+AlmEntity* AlmGameScene::CreateEntity(const std::string& name, AlmTransform* parent)
 {
 	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
 	auto newEntity = manager->CreateEntity(name);
-	parent->AddChild(newEntity->GetTransform());
+	parent->AddChild(newEntity);
 	return newEntity;
 }
 
-void AlmGameScene::ReleaseEntity(IAlmEntity* entity)
+void AlmGameScene::ReleaseEntity(AlmEntity* entity)
 {
 	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
-	if (IAlmTransform * parent = entity->GetTransform()->GetParent())
-		parent->RemoveChild(entity->GetTransform());
+	if (AlmTransform * parent = entity->GetParent())
+		parent->RemoveChild(entity);
 	manager->ReleaseEntity(entity);
 }
 
-IAlmEntity* AlmGameScene::FindByName(const std::string& name) const
+AlmEntity* AlmGameScene::FindByName(const std::string& name) const
 {
 	auto manager = const_cast<IAlmEntityManager*>(&Engine()->GetEntityManager());
 	return manager->FindByName(name);
 }
 
-IAlmTransform* AlmGameScene::GetRoot()
+AlmTransform* AlmGameScene::GetRoot()
 {
 	return m_rootTransform;
 }

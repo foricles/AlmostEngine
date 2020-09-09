@@ -5,10 +5,10 @@
 
 namespace alme
 {
-class IAlmEntity;
+class AlmEntity;
 class AlmostEngine;
 class AlmGameSceneP;
-class IAlmTransform;
+class AlmTransform;
 class AlmGameScene
 {
 friend class AlmSceneManager;
@@ -22,13 +22,13 @@ public:
 	virtual void				PostUpdate() {};
 	virtual void				OnDelete() {};
 
-	const AlmostEngine *		Engine() const;
-	IAlmEntity *				CreateEntity(const std::string &name);
-	IAlmEntity *				CreateEntity(const std::string &name, IAlmTransform* parent);
-	void						ReleaseEntity(IAlmEntity* entity);
-	IAlmEntity*					FindByName(const std::string& name) const;
+	const AlmostEngine*			Engine() const;
+	AlmEntity *					CreateEntity(const std::string &name);
+	AlmEntity *					CreateEntity(const std::string &name, AlmTransform* parent);
+	void						ReleaseEntity(AlmEntity* entity);
+	AlmEntity*					FindByName(const std::string& name) const;
 
-	IAlmTransform* GetRoot();
+	AlmTransform* GetRoot();
 	void UpdateTransformationTree();
 
 private:
@@ -37,7 +37,7 @@ private:
 private:
 	std::string m_name;
 	AlmostEngine * m_engine;
-	IAlmTransform* m_rootTransform;
+	AlmTransform* m_rootTransform;
 };
 
 }

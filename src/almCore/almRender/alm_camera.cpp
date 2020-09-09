@@ -33,8 +33,8 @@ void AlmCamera::SetOrthographic(int iLeft, int iRight, int iTop, int iBottom, in
 
 const kmu::mat4 AlmCamera::GetCameraMatrix()
 {
-	kmu::vec3 pos = GetTransform()->GetPosition();
-	kmu::quaternion rot = GetTransform()->GetRotation();
+	kmu::vec3 pos = GetPosition();
+	kmu::quaternion rot = GetRotation();
 
 	kmu::vec3 U = rot.rotate(VEC3_UP);
 	kmu::vec3 F = rot.rotate(VEC3_FRONT);

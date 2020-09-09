@@ -28,17 +28,14 @@ public:
 		for (int i(0); i <5 ; ++i)
 		{
 			auto ent = CreateEntity("i_" + std::to_string(i));
-			//ent->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
 			for (int j(0); j < 6; ++j)
 			{
 				auto ent2 = CreateEntity("i_" + std::to_string(i) + "j_" + std::to_string(j));
-				//ent2->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
-				ent->GetTransform()->AddChild(ent2->GetTransform());
+				ent->AddChild(ent2);
 				for (int k(0); k < 7; ++k)
 				{
 					auto ent3 = CreateEntity("i_" + std::to_string(i) + "j_" + std::to_string(j) + "k_" + std::to_string(k));
-					//ent3->onUpdate.Add<SimpleScene>(this, &SimpleScene::update);
-					ent2->GetTransform()->AddChild(ent3->GetTransform());
+					ent2->AddChild(ent3);
 				}
 			}
 		}
@@ -54,6 +51,7 @@ public:
 		file.Load();
 		std::cout << file.asString() << std::endl;
 
+		/*
 		auto image = alme::image::AlmImageLoader::Create("test.png");
 		alme::kmu::vec2 m(image->GetWight()/2.0f, image->GetHeight()/2.0f);
 		float n = 500;
@@ -67,9 +65,10 @@ public:
 		qer->SetPixel(9, 0, {0,0,0,255});
 		qer->SetPixel(0, 9, {255,0,0,255});
 		alme::image::AlmImageLoader::SaveImage(qer, "created.png");
+		*/
 	}
 
-	void update(alme::IAlmEntity* e)
+	void update(alme::AlmEntity* e)
 	{
 		std::cout << e->GetName() << std::endl;
 		for (const auto & t : Engine()->GetTimeSystem().timePoints())

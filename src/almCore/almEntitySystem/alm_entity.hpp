@@ -11,6 +11,8 @@ namespace alme
 	{
 		friend class AlmEntityManager;
 	public:
+		using comp_vector = std::vector<IAlmComponent*>;
+		using comp_pair = std::pair<uint64_t, comp_vector>;
 		using almTagPair = std::pair<std::string, std::vector<IAlmComponent*>>;
 
 
@@ -30,7 +32,18 @@ namespace alme
 		void							NotifyComponentsByName(const std::string &name, IAlmComponent* component);
 		void							AddComponentUnderTag(const std::string& tag, IAlmComponent* component);
 		void							RemoveComponentFromTag(const std::string& tag, IAlmComponent* component);
-		template<class T> void			CreateComponent(const std::string& tag = "");
+		IAlmComponent*					GetComponentByType(uint64_t typeId);
+		comp_vector						GetComponentsByType(uint64_t typeId);
+
+		template<class T> 
+		void							CreateComponent(const std::string& tag = "");
+		template<class T>
+		std::vector<T*>					GetComponents();
+		template<class T>
+		IAlmComponent*					GetComponent();
+
+	private:
+		void							AddCoponent(IAlmComponent* component);
 
 	protected:
 		AlmEntity*						GetCopy();
@@ -48,7 +61,7 @@ namespace alme
 		bool							m_hasUpdate;
 
 	private:
-		std::vector<IAlmComponent*>		m_components;
+		std::vector<comp_pair>			m_components;
 		std::vector<almTagPair>			m_componentsLayers;
 	};
 
@@ -59,9 +72,27 @@ inline void alme::AlmEntity::CreateComponent(const std::string& tag)
 {
 	IAlmComponent* newComponent = new T(this);
 	newComponent->SetName();
-	m_components.push_back(newComponent);
-	if(!tag.empty())
-		AddComponentUnderTag(newComponent, tag);
+	AddCoponent(newComponent);
+	if (tag.empty())
+		return;
+	AddComponentUnderTag(newComponent, tag);
+}
+
+template<class T>
+inline std::vector<T*> alme::AlmEntity::GetComponents()
+{
+	const auto arr = GetComponentsByType(T::TypeID);
+	std::vector<T*> ret(arr.size());
+	for (auto& t : arr)
+		ret.push_back(static_cast<T*>(t));
+	return std::move(ret);
+}
+
+template<class T>
+inline alme::IAlmComponent* alme::AlmEntity::GetComponent()
+{
+	const auto comp = GetComponentByType(T::TypeID);
+	return comp ? static_cast<T*>(comp) : nullptr;
 }
 
 #endif // !_ALM_ENTITY_HPP_
